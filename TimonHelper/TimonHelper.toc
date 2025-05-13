@@ -1,0 +1,7 @@
+## Interface: 11200
+## Title: TimonHelper
+## Author: Timon
+## Version: 1.0
+
+Core.lua
+Modules\Spells\Warrior.lua
