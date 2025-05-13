@@ -26,4 +26,5 @@ end
 --main macro
 function Battle()
     TargetEnemy()
+    SetAutoAttack()
 end
