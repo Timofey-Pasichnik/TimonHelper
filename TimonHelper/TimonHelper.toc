@@ -3,5 +3,7 @@
 ## Author: Timon
 ## Version: 1.0
 
-Core.lua
+Modules\Variables.lua
+Modules\Spells\Common.lua
 Modules\Spells\Warrior.lua
+Core.lua

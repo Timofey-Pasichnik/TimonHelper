@@ -1,8 +1,8 @@
---global variables
-me = 'player'
-he = 'target'
+--find my race and class
 my_class = UnitClass(me)
 my_race = UnitRace(me)
+
+print('TimonHelper: loaded configuration ' .. my_race .. ' ' .. my_class)
 
 --targeting
 function TargetEnemy()
@@ -21,10 +21,21 @@ function SetAutoAttack()
     end
 end
 
+--check conditions
+--function DoAction(spell_to_cast)
+--    if IsAction
+--end
+
+--choose rotation
+function ChooseRotation()
+    if my_class == classes.warrior then
+        DoWarriorRotation()
+    end
+end
+
 
 
 --main macro
 function Battle()
-    TargetEnemy()
-    SetAutoAttack()
+    ChooseRotation()
 end

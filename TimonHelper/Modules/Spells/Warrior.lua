@@ -43,7 +43,16 @@ spells = {
     Warrior = {
         attack = {
             action_slot = 25,
-            race = 'all'
+            race = races.all,
+            level = 1,
+            ignored_npc = {},
+            ignored_types = {},
+            type = spell_types.auto_attack
         }
     }
 }
+
+function DoWarriorRotation()
+    TargetEnemy()
+    SetAutoAttack()
+end
