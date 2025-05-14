@@ -1,5 +1,4 @@
-print('Warrior.lua loaded')
-
+print('Rogue.lua loaded')
 --spells
 
 --ActionBar page 1: slots 1 to 12 -- Note exceptions below for other classes
@@ -42,43 +41,60 @@ print('Warrior.lua loaded')
 --ActionBar page 1 Possess: slots 121-132
 
 spells = {
-    Warrior = {
-        battle_shout = {
-            action_slot = 62,
-            race = races.all,
-            level = 1,
-            ignored_npc = {},
-            ignored_types = {},
-            type = spell_types.buff,
-            spell_name = 'Battle Shout',
-            combat = true
-        },
-        heroic_strike = {
+    Rogue = {
+        sinister_strike = {
             action_slot = 26,
             race = races.all,
             level = 1,
             ignored_npc = {},
             ignored_types = {},
-            type = spell_types.queued,
-            spell_name = 'Heroic Strike',
+            type = spell_types.direct,
+            spell_name = 'Sinister Strike',
             combat = true
         },
-
+        eviscerate = {
+            action_slot = 27,
+            race = races.all,
+            level = 1,
+            ignored_npc = {},
+            ignored_types = {},
+            type = spell_types.combo,
+            spell_name = 'Eviscerate',
+            combat = true,
+            damage = {
+                {6, 10},
+                {11, 15},
+                {16, 20},
+                {21, 25},
+                {26, 30}
+            }
+        }
     }
 }
 
-function DoWarriorRotation()
+can_check_melee_range = true
+melee_range_spell = spells.Rogue.sinister_strike.action_slot
+
+function DoRogueRotation()
     TargetEnemy()
     SetAutoAttack()
     go_blood_fury()
-    go_battle_shout()
-    go_heroic_strike()
+    go_eviscerate()
+    go_sinister_strike()
 end
 
-function go_battle_shout()
-    DoAction(spells.Warrior.battle_shout)
+function go_eviscerate()
+    local combo_points = GetComboPoints()
+    if combo_points > 0 then
+        local min_eviscerate_dmg = spells.Rogue.eviscerate.damage[combo_points][1]
+        local max_eviscerate_dmg = spells.Rogue.eviscerate.damage[combo_points][2]
+        local avg_eviscerate_dmg = (min_eviscerate_dmg + max_eviscerate_dmg) / 2
+        if (avg_eviscerate_dmg > UnitHealth(he)) or combo_points == 5 then
+            DoAction(spells.Rogue.eviscerate)
+        end
+    end
 end
 
-function go_heroic_strike()
-    DoAction(spells.Warrior.heroic_strike)
+function go_sinister_strike()
+    DoAction(spells.Rogue.sinister_strike)
 end

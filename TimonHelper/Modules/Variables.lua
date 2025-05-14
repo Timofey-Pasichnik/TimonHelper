@@ -1,13 +1,17 @@
+print('Variables.lua loaded')
 --global variables
 me = 'player'
 he = 'target'
 races = {
     all = 'All_Races',
-    orc = 'Orc'
+    orc = 'Orc',
+    human = 'Human'
 }
 classes = {
     warrior = 'Warrior',
-    shaman = 'Shaman'
+    rogue = 'Rogue',
+    shaman = 'Shaman',
+    priest = 'Priest'
 }
 specializations = {
     healer = 'healer'
@@ -18,5 +22,11 @@ genders = {
 }
 spell_types = {
     auto_attack = 'AUTO_ATTACK',
-    buff = 'BUFF'
+    buff = 'BUFF',
+    queued = 'QUEUED',
+    direct = 'DIRECT',
+    combo = 'COMBO'
+}
+ranges = {
+    melee = 'MELEE'
 }

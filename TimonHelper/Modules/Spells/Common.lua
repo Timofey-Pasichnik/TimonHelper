@@ -1,3 +1,5 @@
+print('Common.lua loaded')
+
 common_spells = {
     Common = {
         attack = {
@@ -8,7 +10,8 @@ common_spells = {
             ignored_types = {},
             type = spell_types.auto_attack,
             spell_name = 'Attack',
-            combat = false
+            combat = false,
+            range = ranges.melee
         },
         blood_fury = {
             action_slot = 61,
@@ -24,5 +27,7 @@ common_spells = {
 }
 
 function go_blood_fury()
-    DoAction(spells.Common.blood_fury)
+    if my_race == races.orc then
+        DoAction(common_spells.Common.blood_fury)
+    end
 end
