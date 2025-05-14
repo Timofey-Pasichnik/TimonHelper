@@ -6,4 +6,5 @@
 Modules\Variables.lua
 Modules\Spells\Common.lua
 Modules\Spells\Warrior.lua
+Modules\Hiring\Hire.lua
 Core.lua

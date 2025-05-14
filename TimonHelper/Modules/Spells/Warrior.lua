@@ -47,7 +47,9 @@ spells = {
             level = 1,
             ignored_npc = {},
             ignored_types = {},
-            type = spell_types.auto_attack
+            type = spell_types.auto_attack,
+            spell_name = 'Attack',
+            combat = False
         }
     }
 }
@@ -55,4 +57,5 @@ spells = {
 function DoWarriorRotation()
     TargetEnemy()
     SetAutoAttack()
+    DoAction(common_spells.Common.blood_fury)
 end
