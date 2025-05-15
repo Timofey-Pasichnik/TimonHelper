@@ -85,7 +85,29 @@ warrior_spells = {
         name = 'Rend',
         combat = true,
         range = ranges.melee
-    }
+    },
+    thunder_clap = {
+        action_slot = 28,
+        race = races.all,
+        level = 6,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.clap,
+        name = 'Thunder Clap',
+        combat = true,
+        range = ranges.melee
+    },
+    hamstring = {
+        action_slot = 29,
+        race = races.all,
+        level = 8,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.debuff,
+        name = 'Hamstring',
+        combat = true,
+        range = ranges.melee
+    },
 }
 
 can_check_melee_range = true
@@ -97,7 +119,9 @@ function DoWarriorRotation()
     go_blood_fury()
     go_battle_shout()
     go_charge()
+    go_thunder_clap()
     go_rend()
+    go_hamstring()
     go_heroic_strike()
 end
 
@@ -114,5 +138,17 @@ function go_rend()
 end
 
 function go_heroic_strike()
-    DoAction(warrior_spells.heroic_strike)
+    if UnitMana(me) > 50 then
+        DoAction(warrior_spells.heroic_strike)
+    end
+end
+
+function go_thunder_clap()
+    if aoe_mode then
+        DoAction(warrior_spells.thunder_clap)
+    end
+end
+
+function go_hamstring()
+    DoAction(warrior_spells.hamstring)
 end

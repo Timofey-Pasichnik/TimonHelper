@@ -30,3 +30,14 @@ function go_blood_fury()
         DoAction(common_spells.blood_fury)
     end
 end
+
+aoe_mode = false
+function switch_aoe()
+    if aoe_mode then
+        aoe_mode = false
+        print('AOE mode OFF')
+    else
+        aoe_mode = true
+        print('AOE mode ON')
+    end
+end

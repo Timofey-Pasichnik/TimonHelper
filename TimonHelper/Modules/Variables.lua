@@ -26,10 +26,12 @@ spell_types = {
     debuff = 'DEBUFF',
     queued = 'QUEUED',
     direct = 'DIRECT',
-    combo = 'COMBO'
+    combo = 'COMBO',
+    clap = 'CLAP'
 }
 ranges = {
     melee = 'MELEE',
     self = 'SELF',
-    ranged = 'RANGED'
+    ranged = 'RANGED',
+    aoe = 'AOE'
 }

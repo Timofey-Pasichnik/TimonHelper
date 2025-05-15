@@ -37,6 +37,7 @@ function DoAction(spell_to_cast)
     if UnitLevel(me) >= required_level then
         if (spell_type == spell_types.buff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not buffed(spell_name, me)) or
                 (spell_type == spell_types.debuff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok and not buffed(spell_name, he)) or
+                (spell_type == spell_types.clap and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok) or
                 (spell_type == spell_types.queued and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not spell_queued and required_melee_range and melee_range_ok) or
                 (spell_type == spell_types.combo and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok) or
                 (spell_type == spell_types.direct and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range  and melee_range_ok) or
