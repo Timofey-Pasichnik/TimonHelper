@@ -41,44 +41,78 @@ print('Warrior.lua loaded')
 --
 --ActionBar page 1 Possess: slots 121-132
 
-spells = {
-    Warrior = {
-        battle_shout = {
-            action_slot = 62,
-            race = races.all,
-            level = 1,
-            ignored_npc = {},
-            ignored_types = {},
-            type = spell_types.buff,
-            spell_name = 'Battle Shout',
-            combat = true
-        },
-        heroic_strike = {
-            action_slot = 26,
-            race = races.all,
-            level = 1,
-            ignored_npc = {},
-            ignored_types = {},
-            type = spell_types.queued,
-            spell_name = 'Heroic Strike',
-            combat = true
-        },
-
+warrior_spells = {
+    battle_shout = {
+        action_slot = 62,
+        race = races.all,
+        level = 1,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.buff,
+        spell_name = 'Battle Shout',
+        combat = true,
+        range = ranges.self
+    },
+    heroic_strike = {
+        action_slot = 26,
+        race = races.all,
+        level = 1,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.queued,
+        spell_name = 'Heroic Strike',
+        combat = true,
+        range = ranges.melee
+    },
+    charge = {
+        action_slot = 49,
+        race = races.all,
+        level = 4,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.direct,
+        spell_name = 'Battle Shout',
+        combat = false,
+        range = ranges.ranged
+    },
+    rend = {
+        action_slot = 27,
+        race = races.all,
+        level = 4,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.debuff,
+        spell_name = 'Rend',
+        combat = true,
+        range = ranges.melee
     }
 }
+
+can_check_melee_range = true
+melee_range_spell = warrior_spells.rend
 
 function DoWarriorRotation()
     TargetEnemy()
     SetAutoAttack()
     go_blood_fury()
     go_battle_shout()
+    go_charge()
+    go_rend()
     go_heroic_strike()
 end
 
 function go_battle_shout()
-    DoAction(spells.Warrior.battle_shout)
+    DoAction(warrior_spells.battle_shout)
+end
+
+function go_charge()
+    DoAction(warrior_spells.charge)
+end
+
+function go_rend()
+    DoAction(warrior_spells.rend)
 end
 
 function go_heroic_strike()
-    DoAction(spells.Warrior.heroic_strike)
+    DoAction(warrior_spells.heroic_strike)
 end

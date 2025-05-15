@@ -40,40 +40,40 @@ print('Rogue.lua loaded')
 --
 --ActionBar page 1 Possess: slots 121-132
 
-spells = {
-    Rogue = {
-        sinister_strike = {
-            action_slot = 26,
-            race = races.all,
-            level = 1,
-            ignored_npc = {},
-            ignored_types = {},
-            type = spell_types.direct,
-            spell_name = 'Sinister Strike',
-            combat = true
-        },
-        eviscerate = {
-            action_slot = 27,
-            race = races.all,
-            level = 1,
-            ignored_npc = {},
-            ignored_types = {},
-            type = spell_types.combo,
-            spell_name = 'Eviscerate',
-            combat = true,
-            damage = {
-                {6, 10},
-                {11, 15},
-                {16, 20},
-                {21, 25},
-                {26, 30}
-            }
+rogue_spells = {
+    sinister_strike = {
+        action_slot = 26,
+        race = races.all,
+        level = 1,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.direct,
+        spell_name = 'Sinister Strike',
+        combat = true,
+        range = ranges.melee
+    },
+    eviscerate = {
+        action_slot = 27,
+        race = races.all,
+        level = 1,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.combo,
+        spell_name = 'Eviscerate',
+        combat = true,
+        range = ranges.melee,
+        damage = {
+            {6, 10},
+            {11, 15},
+            {16, 20},
+            {21, 25},
+            {26, 30}
         }
     }
 }
 
 can_check_melee_range = true
-melee_range_spell = spells.Rogue.sinister_strike.action_slot
+melee_range_spell = rogue_spells.sinister_strike
 
 function DoRogueRotation()
     TargetEnemy()
@@ -85,16 +85,17 @@ end
 
 function go_eviscerate()
     local combo_points = GetComboPoints()
+    local eviscerate = rogue_spells.eviscerate
     if combo_points > 0 then
-        local min_eviscerate_dmg = spells.Rogue.eviscerate.damage[combo_points][1]
-        local max_eviscerate_dmg = spells.Rogue.eviscerate.damage[combo_points][2]
+        local min_eviscerate_dmg = eviscerate.damage[combo_points][1]
+        local max_eviscerate_dmg = eviscerate.damage[combo_points][2]
         local avg_eviscerate_dmg = (min_eviscerate_dmg + max_eviscerate_dmg) / 2
         if (avg_eviscerate_dmg > UnitHealth(he)) or combo_points == 5 then
-            DoAction(spells.Rogue.eviscerate)
+            DoAction(eviscerate)
         end
     end
 end
 
 function go_sinister_strike()
-    DoAction(spells.Rogue.sinister_strike)
+    DoAction(rogue_spells.sinister_strike)
 end

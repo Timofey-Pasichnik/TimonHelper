@@ -18,8 +18,8 @@ end
 
 --attack
 function SetAutoAttack()
-    if not IsCurrentAction(common_spells.Common.attack.action_slot) then
-        UseAction(common_spells.Common.attack.action_slot)
+    if not IsCurrentAction(common_spells.attack.action_slot) then
+        UseAction(common_spells.attack.action_slot)
     end
 end
 
@@ -33,14 +33,27 @@ function DoAction(spell_to_cast)
     local cooldown_ready = GetActionCooldown(spell_action_slot) == 0
     local spell_usable = IsUsableAction(spell_action_slot)
     local spell_queued = IsCurrentAction(spell_action_slot)
-    local range_ok = not can_check_melee_range or IsActionInRange(melee_range_spell)
+    local required_melee_range = spell_to_cast.range == ranges.melee
+    local range_ok = IsActionInRange(spell_action_slot)
+    local required_range = spell_to_cast.range == ranges.ranged
+    local melee_range_ok = (not can_check_melee_range and CheckTargetInteractDistance(he, 3)) or IsActionInRange(melee_range_spell.action_slot)
     if UnitLevel(me) >= required_level then
-        if (spell_type == spell_types.buff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not buffed(spell_name)) or
-                (spell_type == spell_types.queued and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not spell_queued and range_ok) or
-                (spell_type == spell_types.combo and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and range_ok) or
-                (spell_type == spell_types.direct and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and range_ok) then
-            CastSpellByName(spell_name)
-        end
+        if (spell_type == spell_types.buff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not buffed(spell_name, me)) then print(1) CastSpellByName(spell_name) end
+        if (spell_type == spell_types.debuff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok and not buffed(spell_name, he)) then print(2) CastSpellByName(spell_name) end
+        if (spell_type == spell_types.queued and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not spell_queued and required_melee_range and melee_range_ok) then print(3) CastSpellByName(spell_name) end
+        if (spell_type == spell_types.combo and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok) then print(4) CastSpellByName(spell_name) end
+        if (spell_type == spell_types.direct and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range  and melee_range_ok) then print(5) CastSpellByName(spell_name) end
+        if (spell_type == spell_types.direct and not required_combat and not UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_range and range_ok) then
+            print(string.format('spell_type')) CastSpellByName(spell_name) end
+
+        --if (spell_type == spell_types.buff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not buffed(spell_name, me)) or
+        --        (spell_type == spell_types.debuff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok and not buffed(spell_name, he)) or
+        --        (spell_type == spell_types.queued and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not spell_queued and required_melee_range and melee_range_ok) or
+        --        (spell_type == spell_types.combo and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok) or
+        --        (spell_type == spell_types.direct and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range  and melee_range_ok) or
+        --        (spell_type == spell_types.direct and not required_combat and not UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_range and range_ok) then
+        --    CastSpellByName(spell_name)
+        --end
     end
 end
 --    if IsAction

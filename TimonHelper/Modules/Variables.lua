@@ -23,10 +23,13 @@ genders = {
 spell_types = {
     auto_attack = 'AUTO_ATTACK',
     buff = 'BUFF',
+    debuff = 'DEBUFF',
     queued = 'QUEUED',
     direct = 'DIRECT',
     combo = 'COMBO'
 }
 ranges = {
-    melee = 'MELEE'
+    melee = 'MELEE',
+    self = 'SELF',
+    ranged = 'RANGED'
 }
