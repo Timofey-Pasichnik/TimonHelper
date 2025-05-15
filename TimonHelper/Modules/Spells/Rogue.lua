@@ -48,7 +48,7 @@ rogue_spells = {
         ignored_npc = {},
         ignored_types = {},
         type = spell_types.direct,
-        spell_name = 'Sinister Strike',
+        name = 'Sinister Strike',
         combat = true,
         range = ranges.melee
     },
@@ -59,7 +59,7 @@ rogue_spells = {
         ignored_npc = {},
         ignored_types = {},
         type = spell_types.combo,
-        spell_name = 'Eviscerate',
+        name = 'Eviscerate',
         combat = true,
         range = ranges.melee,
         damage = {

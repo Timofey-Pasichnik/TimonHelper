@@ -49,7 +49,7 @@ warrior_spells = {
         ignored_npc = {},
         ignored_types = {},
         type = spell_types.buff,
-        spell_name = 'Battle Shout',
+        name = 'Battle Shout',
         combat = true,
         range = ranges.self
     },
@@ -60,7 +60,7 @@ warrior_spells = {
         ignored_npc = {},
         ignored_types = {},
         type = spell_types.queued,
-        spell_name = 'Heroic Strike',
+        name = 'Heroic Strike',
         combat = true,
         range = ranges.melee
     },
@@ -71,7 +71,7 @@ warrior_spells = {
         ignored_npc = {},
         ignored_types = {},
         type = spell_types.direct,
-        spell_name = 'Battle Shout',
+        name = 'Charge',
         combat = false,
         range = ranges.ranged
     },
@@ -82,7 +82,7 @@ warrior_spells = {
         ignored_npc = {},
         ignored_types = {},
         type = spell_types.debuff,
-        spell_name = 'Rend',
+        name = 'Rend',
         combat = true,
         range = ranges.melee
     }

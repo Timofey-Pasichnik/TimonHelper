@@ -8,7 +8,7 @@ common_spells = {
         ignored_npc = {},
         ignored_types = {},
         type = spell_types.auto_attack,
-        spell_name = 'Attack',
+        name = 'Attack',
         combat = false,
         range = ranges.melee
     },
@@ -19,7 +19,7 @@ common_spells = {
         ignored_npc = {},
         ignored_types = {},
         type = spell_types.buff,
-        spell_name = 'Blood Fury',
+        name = 'Blood Fury',
         combat = true,
         range = ranges.self
     }
