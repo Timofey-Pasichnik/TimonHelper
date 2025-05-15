@@ -22,18 +22,18 @@ end
 
 --check conditions
 function DoAction(spell_to_cast)
-    spell_action_slot = spell_to_cast.action_slot
-    spell_type = spell_to_cast.type
-    spell_name = spell_to_cast.name
-    required_combat = spell_to_cast.combat
-    required_level = spell_to_cast.level
-    cooldown_ready = GetActionCooldown(spell_action_slot) == 0
-    spell_usable = IsUsableAction(spell_action_slot)
-    spell_queued = IsCurrentAction(spell_action_slot)
-    required_melee_range = spell_to_cast.range == ranges.melee
-    range_ok = IsActionInRange(spell_action_slot)
-    required_range = spell_to_cast.range == ranges.ranged
-    melee_range_ok = (not can_check_melee_range and CheckTargetInteractDistance(he, 3)) or IsActionInRange(melee_range_spell.action_slot)
+    local spell_action_slot = spell_to_cast.action_slot
+    local spell_type = spell_to_cast.type
+    local spell_name = spell_to_cast.name
+    local required_combat = spell_to_cast.combat
+    local required_level = spell_to_cast.level
+    local cooldown_ready = GetActionCooldown(spell_action_slot) == 0
+    local spell_usable = IsUsableAction(spell_action_slot)
+    local spell_queued = IsCurrentAction(spell_action_slot)
+    local required_melee_range = spell_to_cast.range == ranges.melee
+    local range_ok = IsActionInRange(spell_action_slot)
+    local required_range = spell_to_cast.range == ranges.ranged
+    local melee_range_ok = (not can_check_melee_range and CheckTargetInteractDistance(he, 3)) or IsActionInRange(melee_range_spell.action_slot)
     if UnitLevel(me) >= required_level then
         if (spell_type == spell_types.buff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not buffed(spell_name, me)) or
                 (spell_type == spell_types.debuff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok and not buffed(spell_name, he)) or
