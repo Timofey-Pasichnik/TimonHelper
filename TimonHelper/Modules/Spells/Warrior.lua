@@ -53,6 +53,17 @@ warrior_spells = {
         combat = true,
         range = ranges.self
     },
+    bloodrage = {
+        action_slot = 63,
+        race = races.all,
+        level = 10,
+        ignored_npc = {},
+        ignored_types = {},
+        type = spell_types.buff,
+        name = 'Bloodrage',
+        combat = true,
+        range = ranges.self
+    },
     heroic_strike = {
         action_slot = 26,
         race = races.all,
@@ -119,6 +130,7 @@ function DoWarriorRotation()
     go_blood_fury()
     go_battle_shout()
     go_charge()
+    go_bloodrage()
     go_thunder_clap()
     go_rend()
     go_hamstring()
@@ -127,6 +139,10 @@ end
 
 function go_battle_shout()
     DoAction(warrior_spells.battle_shout)
+end
+
+function go_bloodrage()
+    DoAction(warrior_spells.bloodrage)
 end
 
 function go_charge()

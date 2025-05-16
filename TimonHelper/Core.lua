@@ -34,7 +34,7 @@ function DoAction(spell_to_cast)
     local range_ok = IsActionInRange(spell_action_slot)
     local required_range = spell_to_cast.range == ranges.ranged
     local melee_range_ok = (not can_check_melee_range and CheckTargetInteractDistance(he, 3)) or IsActionInRange(melee_range_spell.action_slot)
-    if UnitLevel(me) >= required_level then
+    if UnitLevel(me) >= required_level and UnitExists(he) then
         if (spell_type == spell_types.buff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and not buffed(spell_name, me)) or
                 (spell_type == spell_types.debuff and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok and not buffed(spell_name, he)) or
                 (spell_type == spell_types.clap and required_combat and UnitAffectingCombat(me) and cooldown_ready and spell_usable and required_melee_range and melee_range_ok) or
