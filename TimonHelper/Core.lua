@@ -8,8 +8,16 @@ print('TimonHelper: loaded configuration ' .. my_race .. ' ' .. my_class)
 
 --targeting
 function TargetEnemy()
-    if not UnitExists(he) then
-        TargetNearestEnemy()
+    if not UnitAffectingCombat(me) then
+        if not UnitExists(he) then
+            TargetNearestEnemy()
+        end
+    else
+        if not UnitExists(he) then
+            if next(targets) then
+                TargetEnemy(next(targets))
+            end
+        end
     end
 end
 

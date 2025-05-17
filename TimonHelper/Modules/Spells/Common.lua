@@ -37,47 +37,33 @@ end
 local raw_combat_log = CreateFrame("Frame")
 raw_combat_log:RegisterEvent("RAW_COMBATLOG")
 raw_combat_log:SetScript("OnEvent", function()
-    print('counter is: ' .. targets_counter)
-    for guid in pairs(targets) do
-        local counter = 0
-        --print(guid)
-        if UnitExists(guid) == 0 or UnitIsDead(guid) == 1 then
-            targets[guid] = nil
-        else
-            counter = counter + 1
-            targets_counter = counter
-            --else
-            --    targets[guid] = nil
-        end
+    local counter = 0
+    for _ in pairs(targets) do
+        counter = counter + 1
     end
+    print('counter is: ' .. targets_counter)
+    targets_counter = counter
+    if targets_counter > 1 then
+        aoe_mode = true
+    else
+        aoe_mode = false
+    end
+
     if arg1 == 'CHAT_MSG_COMBAT_CREATURE_VS_SELF_HITS' or arg1 == 'CHAT_MSG_COMBAT_CREATURE_VS_SELF_HITS' then
         local start_pos, end_pos = string.find(arg2, "^0x[0-9A-Fa-f]+")
         if start_pos then
             local guid = string.sub(arg2, start_pos, end_pos)
             targets[guid] = GetTime()
-            --print(guid .. 'added')
         end
-    --    else if arg1 == 'CHAT_MSG_COMBAT_HOSTILE_DEATH' then
-    --    --print(arg2)
-    --    local start_pos, end_pos = string.find(arg2, "0x[0-9A-Fa-f]+")
-    --    if start_pos then
-    --        local guid = string.sub(arg2, start_pos, end_pos)
-    --        targets[guid] = nil
-    --        --print(guid .. 'is dead')
-    --    end
-    --end
+    else
+        if arg1 == 'CHAT_MSG_COMBAT_HOSTILE_DEATH' then
+            local start_pos, end_pos = string.find(arg2, "0x[0-9A-Fa-f]+")
+            if start_pos then
+                local guid = string.sub(arg2, start_pos, end_pos)
+                targets[guid] = nil
+            end
+        end
     end
-    --    print('kek')
-    --    print('arg1 ' .. arg1)
-    --    print('arg2 ' .. arg2)
-    --    local start_pos, end_pos = string.find(arg2, "^0x[0-9A-Fa-f]+")
-    --    if start_pos then
-    --        local hexValue = string.sub(arg2, start_pos, end_pos)
-    --        print(hexValue)
-    --    end
-    --end
-    --print(arg1)
-    --print(arg2)
 end)
 
 aoe_mode = false
