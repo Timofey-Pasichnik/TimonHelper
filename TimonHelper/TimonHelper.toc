@@ -3,9 +3,4 @@
 ## Author: Timon
 ## Version: 1.0
 
-Modules\Variables.lua
-Modules\Spells\Common.lua
-Modules\Spells\Warrior.lua
-Modules\Spells\Rogue.lua
-Modules\Hiring\Hire.lua
 Core.lua
