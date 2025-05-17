@@ -3,4 +3,11 @@
 ## Author: Timon
 ## Version: 1.0
 
+Modules\Variables.lua
+Modules\Functions.lua
+Modules\Targeting.lua
+Modules\Combat.lua
+Modules\AOE.lua
+Modules\Spells\Common.lua
+Modules\Spells\Warrior.lua
 Core.lua
