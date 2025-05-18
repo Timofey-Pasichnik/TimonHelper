@@ -1,0 +1,303 @@
+--th.cr_variable = 'enable'
+------ Nexus WoW - Client to Server communication
+----
+------ Create a frame globally, one time, that is used to send queries to the server. The frame can't be deleted so it must be reused.
+----client_to_server = CreateFrame('Frame')
+----
+------ Create a frame for receiving responses from the server.
+--server_to_client = CreateFrame('Frame') -- create a frame that will listen for events
+--server_to_client:RegisterEvent('CHAT_MSG_ADDON') -- register what events do you want the frame to listen for - in our case we want to listen to messages from the server
+--server_to_client:SetScript('OnEvent', function()
+--    print('event is ' .. event)
+--    print('arg1 is ' .. arg1)
+--    print("SMSG:" .. arg1 .. " arg2:" .. arg2 .. " CHANNEL:" .. arg3 .. " SENDER:" .. arg4)
+--    --print(arg1)
+--    --print(arg2)
+--    --print()
+--end)
+--
+---- args for ClientRequest()
+---- Syntax:  GRINFO:(ALL/SELF):(FULL/NAMES), PLINFO:(SPELLS/COOLDOWNS):(BOT NAME)
+---- example: GRINFO:ALL:FULL -> returns all the names of the bots in your group along with extra info about their race, class, role and owner name
+---- example: GRINFO:ALL:NAMES -> return all the names of the bots in your group
+---- example: GRINFO:SELF:FULL -> the SELF condition makes it so that it only provides info about your own companions
+---- example: PLINFO:SPELLS:Anna -> returns information about the bot's "Anna" known spells
+---- example: PLINFO:COOLDOWNS:Anna -> returns information about the bot's "Anna" cooldowns
+--
+--function ClientRequest(arg)
+--    -- It's necessary to call an OnUpdate function from a frame in order to SendAddonMessages to the server
+--    CLIENTTOSERVER:SetScript("OnUpdate", function()
+--
+--        -- Send the message request to the server
+--        SendAddonMessage("nexus", arg, "BATTLEGROUND")
+--
+--        -- Clear the OnUpdate script after it finishes because the job's done and we don't want to spam the server
+--        CLIENTTOSERVER:SetScript("OnUpdate", nil)
+--
+--    end)
+--end
+--
+--function SERVERTOCLIENT:OnEvent()
+--    -- print("SMSG:" .. arg1 .. " arg2:" .. arg2 .. " CHANNEL:" .. arg3 .. " SENDER:" .. arg4)
+--    -- print(arg1)
+--
+--    -- We are only interested in capturing messages from the server on the addon channel, which is invisible to the players
+--    if event ~= "CHAT_MSG_ADDON" then
+--        return
+--    end
+--
+--    -- Check if the message starts with [nexus]
+--    local startPos, endPos = string.find(arg1, "%[nexus%]")
+--
+--    -- If no [nexus] tag is found, or the channel is different than the server one, or the sender is not this player, then do nothing
+--    if startPos == nil or arg3 ~= "UNKNOWN" or arg4 ~= UnitName("player") then
+--        return
+--    end
+--
+--    -- Extract the part of the instruction after the [nexus] tag
+--    -- This instruction is the same as the one you've sent in ClientRequest(arg), like for example: GRINFO:ALL:FULL
+--    -- The server is sending back for which instruction it gives the answer, so you know how to process the answer
+--    local serverResponse = string.sub(arg1, endPos + 2) -- +2 to skip the space after [nexus]
+--
+--    -- Find the first colon (:) in the instruction to get the mainInstruction
+--    local firstColon = string.find(serverResponse, ":")
+--    if not firstColon then return end -- If there's no colon, return
+--
+--    -- Get the main instruction (e.g., GRINFO)
+--    local instruction = string.sub(serverResponse, 1, firstColon - 1)
+--
+--    -- Find the second colon to get the scope (e.g., ALL or SELF)
+--    local secondColon = string.find(serverResponse, ":", firstColon + 1)
+--    if not secondColon then return end -- If there's no second colon, return
+--
+--    -- Get the scope (e.g., ALL, SELF)
+--    local scope = string.sub(serverResponse, firstColon + 1, secondColon - 1)
+--
+--    -- Get the detail (e.g., FULL, NAMES)
+--    local spacePos = string.find(serverResponse, " ", secondColon + 1)
+--    local detail
+--
+--    -- If no space is found, the detail is the rest of the string
+--    if spacePos == nil then
+--        detail = string.sub(serverResponse, secondColon + 1)
+--    else
+--        detail = string.sub(serverResponse, secondColon + 1, spacePos - 1)
+--    end
+--
+--    -- Check the main instruction and process accordingly
+--    if instruction == "GRINFO" then
+--
+--        -- Handle based on scope (ALL or SELF) and detail (FULL or NAMES)
+--        if (scope == "ALL" or scope == "SELF") and detail == "FULL" then
+--
+--            -- Extract the actual response after the instruction, ie. remove "GRINFO:ALL:FULL"
+--            local companionInfo = string.sub(serverResponse, spacePos + 1)
+--
+--            -- Split companionInfo by space to extract companion details
+--            local companions = {}
+--            local nameStart = 1
+--            local nameEnd = string.find(companionInfo, " ", nameStart)
+--
+--            while nameEnd do
+--                local nameBlock = string.sub(companionInfo, nameStart, nameEnd - 1)
+--                table.insert(companions, nameBlock)
+--                nameStart = nameEnd + 1
+--                nameEnd = string.find(companionInfo, " ", nameStart)
+--            end
+--
+--            -- Insert the last block of companion info (if there is no space at the end)
+--            if nameStart <= string.len(companionInfo) then
+--                local lastBlock = string.sub(companionInfo, nameStart)
+--                table.insert(companions, lastBlock)
+--            end
+--
+--            -- Now parse the companions into their respective fields: name, race, class, role, and owner
+--            for _, companion in ipairs(companions) do
+--                local companionData = {}
+--                local partStart = 1
+--                local partEnd = string.find(companion, ":")
+--                while partEnd do
+--                    table.insert(companionData, string.sub(companion, partStart, partEnd - 1))
+--                    partStart = partEnd + 1
+--                    partEnd = string.find(companion, ":", partStart)
+--                end
+--
+--                -- Add the last part (owner name) if there is no colon at the end
+--                if partStart <= string.len(companion) then
+--                    table.insert(companionData, string.sub(companion, partStart))
+--                end
+--
+--                -- Now we have companionData[1] = name, [2] = race, [3] = class, [4] = role, [5] = owner
+--                local companionName = companionData[1]
+--                local companionRace = companionData[2]
+--                local companionClass = companionData[3]
+--                local companionRole = companionData[4]
+--                local companionOwner = companionData[5]
+--
+--                -- Display the companion details in the chat frame
+--                local formattedMessage = string.format("Companion: %s (%s, %s, %s) - Owned by: %s", companionName, companionRace, companionClass, companionRole, companionOwner)
+--                DEFAULT_CHAT_FRAME:AddMessage(formattedMessage, 1.0, 1.0, 0.0) -- Yellow text
+--            end
+--
+--        elseif (scope == "ALL" or scope == "SELF") and detail == "NAMES" then
+--
+--            -- Extract the actual response after the instruction, ie. remove "GRINFO:ALL:NAMES"
+--            local companionInfo = string.sub(serverResponse, spacePos + 1)
+--
+--            -- Initialize an empty table to store names
+--            local names = {}
+--
+--            -- Loop through the message and extract each name and insert into the names array
+--            local nameStart = 1
+--            local nameEnd = string.find(companionInfo, " ", nameStart)
+--            while nameEnd do
+--                local name = string.sub(companionInfo, nameStart, nameEnd - 1)
+--                table.insert(names, name)
+--                nameStart = nameEnd + 1
+--                nameEnd = string.find(companionInfo, " ", nameStart)
+--            end
+--
+--            -- Insert the last name after the last space
+--            local lastName = string.sub(companionInfo, nameStart)
+--            table.insert(names, lastName)
+--
+--            -- Now you have all the names in the 'names' array - you can do whatever you want with them, like send all the bots a 'Hello' message
+--            -- INSERT YOUR OWN LOGIC HERE
+--            local messageToSend = "Hello"
+--            for _, name in ipairs(names) do
+--                if name and name ~= "" then  -- Double-check the name is valid before whispering
+--                    SendChatMessage(messageToSend, "WHISPER", nil, name)
+--                else
+--                    print("Invalid name, skipping whisper.")
+--                    print(name)
+--                end
+--            end
+--        end
+--
+--    elseif instruction == "PLINFO" then
+--
+--        -- Example server response: PLINFO:SPELLS:Janna [Arms] Battle Stance, Charge, Hamstring, [Fury] Berserker Stance, Cleave, [Protection] Shield Slam
+--        if scope == "SPELLS" then
+--
+--            -- Extract the spell info
+--            local spellInfo = string.sub(serverResponse, spacePos + 1)
+--
+--            -- Find the first space which separates the player's name from the rest
+--            local nameEndPos = string.find(spellInfo, " ")
+--            local spellsString = string.sub(spellInfo, nameEndPos + 1) -- The rest is the spells list
+--
+--            -- Display the player's name (which is stored in detail)
+--            DEFAULT_CHAT_FRAME:AddMessage(detail .. "'s Spells:", 1.0, 1.0, 0.0) -- Yellow text for player name
+--
+--            -- Initialize variables for iteration
+--            local talentStart = 1
+--            local talentEnd = string.find(spellsString, "%[", talentStart) -- Find the start of the first talent header
+--
+--            -- Iterate over the talent blocks and spells
+--            while talentEnd do
+--                local nextTalentStart = string.find(spellsString, "%[", talentEnd + 1) -- Find the start of the next talent header
+--                local talentBlock
+--
+--                if nextTalentStart then
+--                    talentBlock = string.sub(spellsString, talentEnd, nextTalentStart - 1) -- Extract block between two talents
+--                else
+--                    talentBlock = string.sub(spellsString, talentEnd) -- Extract the remaining part after the last talent
+--                end
+--
+--                -- Extract talent header (e.g., [Arms])
+--                local talentHeaderEnd = string.find(talentBlock, "%]") -- Find the end of the talent header
+--                if talentHeaderEnd then
+--                    local currentTalent = string.sub(talentBlock, 1, talentHeaderEnd) -- Extract talent header
+--                    DEFAULT_CHAT_FRAME:AddMessage(currentTalent, 0.5, 1.0, 0.5) -- Display talent header in green
+--                end
+--
+--                -- Extract spells after the talent header
+--                local spellsList = string.sub(talentBlock, talentHeaderEnd + 1)
+--                local spellStart = 1
+--                local spellEnd = string.find(spellsList, ",", spellStart)
+--
+--                -- Loop through the spells under the current talent
+--                while spellEnd do
+--                    local spell = string.sub(spellsList, spellStart, spellEnd - 1)
+--                    spell = string.gsub(spell, "^%s*(.-)%s*$", "%1") -- Trim spaces
+--                    if spell ~= "" then
+--                        DEFAULT_CHAT_FRAME:AddMessage("  - " .. spell, 1.0, 0.82, 0.0) -- Display spells indented in yellow
+--                    end
+--                    spellStart = spellEnd + 1
+--                    spellEnd = string.find(spellsList, ",", spellStart)
+--                end
+--
+--                -- Add the last spell in the list if there is no trailing comma
+--                local lastSpell = string.sub(spellsList, spellStart)
+--                lastSpell = string.gsub(lastSpell, "^%s*(.-)%s*$", "%1") -- Trim spaces
+--                if lastSpell ~= "" then
+--                    DEFAULT_CHAT_FRAME:AddMessage("  - " .. lastSpell, 1.0, 0.82, 0.0) -- Display last spell indented in yellow
+--                end
+--
+--                -- Update for next iteration
+--                talentStart = nextTalentStart
+--                talentEnd = nextTalentStart
+--            end
+--
+--            -- Example server response: PLINFO:COOLDOWNS:Janna Bloodrage:56
+--        elseif scope == "COOLDOWNS" then
+--
+--            -- Extract the cooldown info
+--            local cooldownInfo = ""
+--
+--            -- Check if there is a space after the detail to separate the player's name from cooldown information
+--            if spacePos then
+--                cooldownInfo = string.sub(serverResponse, spacePos + 1)
+--            else
+--                cooldownInfo = ""  -- No cooldowns information if there's no space
+--            end
+--
+--            -- Display the player's name (which is stored in `detail`)
+--            DEFAULT_CHAT_FRAME:AddMessage(detail .. "'s Cooldowns:", 1.0, 1.0, 0.0) -- Yellow text for player name
+--
+--            -- Check if there are cooldowns present or not
+--            if cooldownInfo == "" or cooldownInfo == nil then
+--                DEFAULT_CHAT_FRAME:AddMessage("  - No cooldowns", 1.0, 0.82, 0.0) -- Display message indicating no cooldowns
+--            else
+--                -- Split cooldownInfo by space to extract individual cooldowns
+--                local cooldownStart = 1
+--                local cooldownEnd = string.find(cooldownInfo, " ", cooldownStart)
+--
+--                while cooldownEnd do
+--                    local cooldown = string.sub(cooldownInfo, cooldownStart, cooldownEnd - 1)
+--                    cooldown = string.gsub(cooldown, "^%s*(.-)%s*$", "%1") -- Trim spaces
+--
+--                    -- Each cooldown should have the format: "SpellName:Time"
+--                    local colonPos = string.find(cooldown, ":")
+--                    if colonPos then
+--                        local spellName = string.sub(cooldown, 1, colonPos - 1)
+--                        local cooldownTime = string.sub(cooldown, colonPos + 1)
+--
+--                        if spellName and cooldownTime then
+--                            DEFAULT_CHAT_FRAME:AddMessage("  - " .. spellName .. " (" .. cooldownTime .. ")", 1.0, 0.82, 0.0) -- Display formatted cooldown
+--                        end
+--                    end
+--
+--                    cooldownStart = cooldownEnd + 1
+--                    cooldownEnd = string.find(cooldownInfo, " ", cooldownStart)
+--                end
+--
+--                -- Add the last cooldown in the list if there is no trailing space
+--                local lastCooldown = string.sub(cooldownInfo, cooldownStart)
+--                lastCooldown = string.gsub(lastCooldown, "^%s*(.-)%s*$", "%1") -- Trim spaces
+--                local colonPos = string.find(lastCooldown, ":")
+--                if colonPos then
+--                    local spellName = string.sub(lastCooldown, 1, colonPos - 1)
+--                    local cooldownTime = string.sub(lastCooldown, colonPos + 1)
+--
+--                    if spellName and cooldownTime then
+--                        DEFAULT_CHAT_FRAME:AddMessage("  - " .. spellName .. " (" .. cooldownTime .. ")", 1.0, 0.82, 0.0) -- Display last cooldown
+--                    end
+--                end
+--            end
+--        end
+--    end
+--end
+--
+---- Attach the OnEvent() function to the frame that will execute when the event is triggered. This needs to be done after you've defined the OnEvent() function.
+--SERVERTOCLIENT:SetScript("OnEvent", SERVERTOCLIENT.OnEvent)

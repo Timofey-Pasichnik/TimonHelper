@@ -10,4 +10,5 @@ Modules\Combat.lua
 Modules\AOE.lua
 Modules\Spells\Common.lua
 Modules\Spells\Warrior.lua
+Modules\Hiring.lua
 Core.lua

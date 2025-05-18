@@ -18,7 +18,7 @@ function th.match(test_string, pattern, index)
     end
 end
 
-function th.ExtractGUIDFromUnitName(he)
-    local _, guid = UnitExists(he)
+function th.ExtractGUIDFromUnitName(target)
+    local _, guid = UnitExists(target)
     return guid
 end

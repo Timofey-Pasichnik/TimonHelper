@@ -1,5 +1,15 @@
+th.warrior_spells = {
+    charge = {
+        spell_name = th.spell_names.charge,
+        action_slot = '58'
+    }
+}
+
 function th.WarriorRotation()
-    if th.IsAOEMode() then
+    th.SelectWarriorTarget()
+    th.SetMarks()
+    th.SetMeleeAttack()
+    if th.hostile_targets > 1 and (not th.IsCCNearby() or (th.IsCCNearby() and not CheckInteractDistance('mark5', 3))) then
         th.WarriorAOERotation()
     else
         th.WarriorSingleRotation()
@@ -11,14 +21,17 @@ function th.WarriorAOERotation()
 end
 
 function th.WarriorSingleRotation()
-    th.SelectWarriorTarget()
+
 end
 
 function th.SelectWarriorTarget()
-    local me_in_combat = UnitAffectingCombat(me)
-    local he_in_combat = UnitAffectingCombat(he)
-    local have_target = UnitExists(he)
-    if not me_in_combat and not have_target then
+    if th.hostile_targets == 0 and (not UnitExists(he) or UnitIsDead(he)) then
+        TargetNearestEnemy()
+    end
+    if th.hostile_targets >0 and UnitExists('mark8') and not UnitIsDead('mark8') then
+        TargetUnit('mark8')
+    else
         TargetNearestEnemy()
     end
 end
+
