@@ -2,6 +2,10 @@ th.common_spells = {
     attack = {
         spell_name = th.spell_names.attack,
         action_slot = 25
+    },
+    blood_fury = {
+        spell_name = th.spell_names.blood_fury,
+        action_slot = '61'
     }
 }
 

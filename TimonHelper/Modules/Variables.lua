@@ -46,7 +46,15 @@ th.ranges = {
 th.cc_spells = {}
 th.spell_names = {
     attack = 'Attack',
-    charge = 'Charge'
+    charge = 'Charge',
+    blood_fury = 'Blood Fury',
+    battle_shout = 'Battle Shout',
+    bloodrage = 'Bloodrage',
+    hamstring = 'Hamstring',
+    rend = 'Rend',
+    overpower = 'Overpower',
+    heroic_strike = 'Heroic Strike',
+    sunder_armor = 'Sunder Armor'
 }
 th.AOE_mode = false
 th.hostile_targets = 0

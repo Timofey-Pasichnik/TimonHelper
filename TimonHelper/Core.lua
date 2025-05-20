@@ -1,5 +1,5 @@
 function th.Battle()
-    th.SetMarks()
+    --th.SetMarks()
     if th.my_class == th.classes.warrior then
         th.WarriorRotation()
     end
