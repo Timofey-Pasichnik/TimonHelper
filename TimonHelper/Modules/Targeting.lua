@@ -78,19 +78,28 @@ clear_target_list:SetScript('OnEvent', function()
             farthest = 0
         }
     }
-    print('Clearing table. Targets now: total: 0, closest: 0, close: 0, far: 0, farther: 0, farthest: 0')
+    print(string.format('Clearing table. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
+            th.targets.counters.all_ranges,
+            th.targets.counters.closest,
+            th.targets.counters.close,
+            th.targets.counters.far,
+            th.targets.counters.farther,
+            th.targets.counters.farthest)
+    )
 end)
 
 function EditHostileTargetTable(participant, action)
-    --check if target not in list and calculate distance
     if CanAttackFightingTarget(participant) then
         local distance_name, distance_index = th.CurrentDistanceToTarget(participant)
-        if not th.targets.all_ranges[participant].guid then
+        if not th.targets.all_ranges[participant] then
+            --check if target not in list and calculate distance
+            th.targets.all_ranges[participant] = {}
+            th.targets[distance_name][participant] = {}
             th.targets.all_ranges[participant].guid = participant
             th.targets.counters.all_ranges = th.targets.counters.all_ranges + 1
-            th.targets.distance_name[participant].guid = participant
+            th.targets[distance_name][participant].guid = participant
             th.targets.all_ranges[participant].range = distance_index
-            th.targets.counters.distance_name = th.targets.counters.distance_name + 1
+            th.targets.counters[distance_name] = th.targets.counters[distance_name] + 1
             print(string.format('Added target. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
                     th.targets.counters.all_ranges,
                     th.targets.counters.closest,
@@ -103,6 +112,11 @@ function EditHostileTargetTable(participant, action)
             local current_range_in_table_int = th.targets.all_ranges[participant].range
             local current_range_in_table_name = th.ranges.backward[current_range_in_table_int]
             if current_range_in_table_int ~= distance_index then
+                --check if target in list changed their distance
+                print('were here')
+                if not th.targets[distance_name][participant] then
+                    th.targets[distance_name][participant] = {}
+                end
                 th.targets.all_ranges[participant].range = distance_index
                 th.targets[current_range_in_table_name][participant].guid = nil
                 th.targets.counters[current_range_in_table_name] = th.targets.counters[current_range_in_table_name] - 1
@@ -120,7 +134,8 @@ function EditHostileTargetTable(participant, action)
         end
 
     end
-    if action == 'CHAT_MSG_COMBAT_HOSTILE_DEATH' and th.targets.all_ranges[participant].guid then
+    if action == 'CHAT_MSG_COMBAT_HOSTILE_DEATH' and th.targets.all_ranges[participant] then
+        --if target dies, remove it from all target lists and unassign raid mark
         local current_range_in_table_int = th.targets.all_ranges[participant].range
         local current_range_in_table_name = th.ranges.backward[current_range_in_table_int]
         th.targets.all_ranges[participant] = nil
@@ -135,6 +150,7 @@ function EditHostileTargetTable(participant, action)
                 th.targets.counters.farther,
                 th.targets.counters.farthest)
         )
+        SetRaidTarget(participant, 0)
     end
 end
 
