@@ -1,6 +1,6 @@
 function th.IsAOEMode()
     local have_cc_monsters = false
-    for item in th.target_list do
+    for item in th.target_list.all_ranges do
         for _, spell in ipairs(th.cc_spells) do
             if buffed(spell, item) then
                 have_cc_monsters = true

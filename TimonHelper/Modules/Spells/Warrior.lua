@@ -25,13 +25,11 @@ function th.WarriorSingleRotation()
 end
 
 function th.SelectWarriorTarget()
-    if th.hostile_targets == 0 and (not UnitExists(he) or UnitIsDead(he)) then
+    if th.hostile_targets == 0 and (not UnitExists(th.he) or UnitIsDead(th.he)) then
         TargetNearestEnemy()
     end
     if th.hostile_targets > 0 and UnitExists('mark8') and not UnitIsDead('mark8') then
         TargetUnit('mark8')
-    else
-        TargetNearestEnemy()
     end
 end
 

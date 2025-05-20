@@ -26,6 +26,22 @@ th.races = {
     tauren = 'Tauren',
     undead = 'Undead'
 }
+th.ranges = {
+    forward = {
+        closest = 3,
+        close = 1,
+        far = 2,
+        farther = 4,
+        farthest = 5
+    },
+    backward = {
+        [3] = 'closest',
+        [1] = 'close',
+        [2] = 'far',
+        [4] = 'farther',
+        [5] = 'farthest'
+    }
+}
 
 th.cc_spells = {}
 th.spell_names = {

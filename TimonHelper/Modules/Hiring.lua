@@ -1,4 +1,4 @@
-local type_of_group = nil
+local type_of_group
 
 local presets_types = {
     dungeon = 'dungeon'
@@ -57,8 +57,8 @@ local function HiringLogic(preset)
     if index == index_to_hire then
         local party_index = 'party_' .. index
         SendChatMessage(string.format('.z addinvite %s t0d %s %s default %s %s',
-                --th.my_name,
-                preset[party_index].owner,
+                th.my_name,
+                --preset[party_index].owner,
                 preset[party_index].class,
                 preset[party_index].role,
                 preset[party_index].race,

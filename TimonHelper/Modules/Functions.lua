@@ -22,3 +22,27 @@ function th.ExtractGUIDFromUnitName(target)
     local _, guid = UnitExists(target)
     return guid
 end
+
+function th.CurrentDistanceToTarget(target)
+    local distance_name
+    local distance_index
+    if UnitExists(target) then
+        if CheckInteractDistance(target, th.ranges.forward.closest) then
+            distance_name = th.ranges.backward[th.ranges.forward.closest]
+            distance_index = th.ranges.forward.closest
+        elseif CheckInteractDistance(target, th.ranges.forward.close) then
+            distance_name = th.ranges.backward[th.ranges.forward.close]
+            distance_index = th.ranges.forward.close
+        elseif CheckInteractDistance(target, th.ranges.forward.far) then
+            distance_name = th.ranges.backward[th.ranges.forward.far]
+            distance_index = th.ranges.forward.far
+        elseif CheckInteractDistance(target, th.ranges.forward.farther) then
+            distance_name = th.ranges.backward[th.ranges.forward.farther]
+            distance_index = th.ranges.forward.farther
+        else
+            distance_name = th.ranges.backward[th.ranges.forward.farthest]
+            distance_index = th.ranges.forward.farthest
+        end
+        return distance_name, distance_index
+    end
+end

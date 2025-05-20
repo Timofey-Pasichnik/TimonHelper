@@ -1,10 +1,48 @@
-th.target_list = {}
+th.targets = {
+    closest = {},
+    close = {},
+    far = {},
+    farther = {},
+    farthest = {},
+    all_ranges = {},
+    counters = {
+        all_ranges = 0,
+        closest = 0,
+        close = 0,
+        far = 0,
+        farther = 0,
+        farthest = 0
+    }
+}
+
+local function CanAddTargetToTargetsList(target)
+    return target
+            and UnitExists(target)
+            and UnitReaction(target, th.me) < 5
+            and not UnitIsDead(target)
+            and UnitAffectingCombat(target)
+            and (UnitHealth(target) == UnitHealthMax(target) or UnitIsTappedByPlayer(target))
+            and not th.target_list.all_ranges[target].guid
+end
+
+local function CanAttackFightingTarget(target)
+    return target
+            and UnitExists(target)
+            and UnitReaction(target, th.me) < 5
+            and not UnitIsDead(target)
+            and UnitAffectingCombat(target)
+end
+
+local function CanAttackNonFightingTarget(target)
+    return UnitExists(target)
+            and UnitReaction(target, th.me) < 5
+            and not UnitIsDead(target)
+            and not UnitAffectingCombat(target)
+end
 
 local involved_targets = CreateFrame('Frame')
 involved_targets:RegisterEvent('RAW_COMBATLOG')
 involved_targets:SetScript('OnEvent', function()
-    --print(arg1)
-    --print(arg2)
     local participants = {}
     local first_participant = th.match(arg2, '0x[A-Z0-9]+', 1)
     if first_participant then
@@ -18,67 +56,152 @@ involved_targets:SetScript('OnEvent', function()
         EditHostileTargetTable(participant, arg1)
     end
     --th.IsAOEMode()
-    th.SetMarks()
+    --th.SetMarks()
 end)
 
 local clear_target_list = CreateFrame('Frame')
 clear_target_list:RegisterEvent('PLAYER_REGEN_ENABLED')
 clear_target_list:SetScript('OnEvent', function()
-    th.target_list = {}
-    th.hostile_targets = 0
-    print('Clearing table. Targets now: ' .. th.hostile_targets)
+    th.targets = {
+        closest = {},
+        close = {},
+        far = {},
+        farther = {},
+        farthest = {},
+        all_ranges = {},
+        counters = {
+            all_ranges = 0,
+            closest = 0,
+            close = 0,
+            far = 0,
+            farther = 0,
+            farthest = 0
+        }
+    }
+    print('Clearing table. Targets now: total: 0, closest: 0, close: 0, far: 0, farther: 0, farthest: 0')
 end)
 
 function EditHostileTargetTable(participant, action)
-    if participant
-            and UnitExists(participant)
-            and UnitReaction(participant, th.me) < 5
-            and not UnitIsDead(participant)
-            and UnitAffectingCombat(participant)
-            and (UnitHealth(participant) == UnitHealthMax(participant) or UnitIsTappedByPlayer(participant))
-            and not th.target_list[participant]
-    then
-        th.target_list[participant] = participant
-        th.hostile_targets = th.hostile_targets + 1
-        print('Adding target. Targets now: ' .. th.hostile_targets)
-    end
-    if action == 'CHAT_MSG_COMBAT_HOSTILE_DEATH' and th.target_list[participant] then
-        th.target_list[participant] = nil
-        th.hostile_targets = th.hostile_targets - 1
-        print('NPC dead. Targets now: ' .. th.hostile_targets)
-    end
-end
-
-function th.SetMarks()
-    local skull_guid = nil
-    local moon_guid = nil
-    if th.hostile_targets == 0 and UnitExists(he) then
-        skull_guid = th.ExtractGUIDFromUnitName(he)
-    end
-    if th.hostile_targets == 1 and next(th.target_list) and UnitExists(next(th.target_list)) and not UnitIsDead(next(th.target_list)) then
-        skull_guid = next(th.target_list)
-    end
-    if th.hostile_targets > 1 then
-        local lowest_monster_hp = 1000000000
-        local highest_monster_hp = 0
-        for target in th.target_list do
-            if UnitExists(target) and not UnitIsDead(target) then
-                if UnitHealth(target) < lowest_monster_hp and target ~= th.ExtractGUIDFromUnitName('mark5') then
-                    lowest_monster_hp = UnitHealth(target)
-                    skull_guid = target
-                end
-                if UnitHealth(target) > highest_monster_hp and (UnitCreatureType(target) == 'Humanoid' or UnitCreatureType(target) == 'Beast') then
-                    highest_monster_hp = UnitHealth(target)
-                    moon_guid = target
-                end
+    --check if target not in list and calculate distance
+    if CanAttackFightingTarget(participant) then
+        local distance_name, distance_index = th.CurrentDistanceToTarget(participant)
+        if not th.targets.all_ranges[participant].guid then
+            th.targets.all_ranges[participant].guid = participant
+            th.targets.counters.all_ranges = th.targets.counters.all_ranges + 1
+            th.targets.distance_name[participant].guid = participant
+            th.targets.all_ranges[participant].range = distance_index
+            th.targets.counters.distance_name = th.targets.counters.distance_name + 1
+            print(string.format('Added target. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
+                    th.targets.counters.all_ranges,
+                    th.targets.counters.closest,
+                    th.targets.counters.close,
+                    th.targets.counters.far,
+                    th.targets.counters.farther,
+                    th.targets.counters.farthest)
+            )
+        else
+            local current_range_in_table_int = th.targets.all_ranges[participant].range
+            local current_range_in_table_name = th.ranges.backward[current_range_in_table_int]
+            if current_range_in_table_int ~= distance_index then
+                th.targets.all_ranges[participant].range = distance_index
+                th.targets[current_range_in_table_name][participant].guid = nil
+                th.targets.counters[current_range_in_table_name] = th.targets.counters[current_range_in_table_name] - 1
+                th.targets[distance_name][participant].guid = participant
+                th.targets.counters[distance_name] = th.targets.counters[distance_name] + 1
+                print(string.format('Target changed range. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
+                        th.targets.counters.all_ranges,
+                        th.targets.counters.closest,
+                        th.targets.counters.close,
+                        th.targets.counters.far,
+                        th.targets.counters.farther,
+                        th.targets.counters.farthest)
+                )
             end
         end
+
     end
-    if skull_guid then
-        SetRaidTarget(skull_guid, 8) --skull
-    end
-    if moon_guid and (not UnitExists('mark5') or UnitIsDead('mark5')) then
-        SetRaidTarget(moon_guid, 5) -- moon
+    if action == 'CHAT_MSG_COMBAT_HOSTILE_DEATH' and th.targets.all_ranges[participant].guid then
+        local current_range_in_table_int = th.targets.all_ranges[participant].range
+        local current_range_in_table_name = th.ranges.backward[current_range_in_table_int]
+        th.targets.all_ranges[participant] = nil
+        th.targets.counters.all_ranges = th.targets.counters.all_ranges - 1
+        th.targets[current_range_in_table_name][participant] = nil
+        th.targets.counters[current_range_in_table_name] = th.targets.counters[current_range_in_table_name] - 1
+        print(string.format('Target dead. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
+                th.targets.counters.all_ranges,
+                th.targets.counters.closest,
+                th.targets.counters.close,
+                th.targets.counters.far,
+                th.targets.counters.farther,
+                th.targets.counters.farthest)
+        )
     end
 end
 
+--function th.SetMarks()
+--    local skull_guid = nil
+--    local moon_guid = nil
+--    local skull_id = 8
+--    local moon_id = 5
+--
+--    if th.hostile_targets == 0 then
+--        if CanAttackNonFightingTarget(th.he) then
+--            skull_guid = th.ExtractGUIDFromUnitName(th.he)
+--        end
+--    end
+--    if th.hostile_targets == 1 then
+--        if next(th.target_list) then
+--            local target =  next(th.target_list)
+--            if CanAttackFightingTarget(target) then
+--                skull_guid = th.ExtractGUIDFromUnitName(th.he)
+--            end
+--        end
+--    end
+--    if th.hostile_targets > 1 then --set moon first in this case
+--        for target in th.target_list do
+--            --if not CheckInteractDistance(target, th.ranges.closest) and
+--
+--        end
+--        local close_range_index = 3--farthest 4, then 2, then 1 and closest is 3
+--        local appropriate_skull_target
+--        for target in th.target_list do
+--            if CheckInteractDistance(target, close_range_index)
+--
+--            end
+--        end
+--    end
+--    if skull_guid then
+--        SetRaidTarget(skull_guid, skull_id)
+--    end
+--    ----set up skull
+--    --if th.hostile_targets == 0 and UnitExists(he) then
+--    --    skull_guid = th.ExtractGUIDFromUnitName(he)
+--    --end
+--    --
+--    --if th.hostile_targets == 1 and next(th.target_list) and UnitExists(next(th.target_list)) and not UnitIsDead(next(th.target_list)) then
+--    --    skull_guid = next(th.target_list)
+--    --end
+--    --
+--    --if th.hostile_targets > 1 then
+--    --    local lowest_monster_hp = 1000000000
+--    --    local highest_monster_hp = 0
+--    --    for target in th.target_list do
+--    --        if UnitExists(target) and not UnitIsDead(target) then
+--    --            if UnitHealth(target) < lowest_monster_hp and target ~= th.ExtractGUIDFromUnitName('mark5') then
+--    --                lowest_monster_hp = UnitHealth(target)
+--    --                skull_guid = target
+--    --            end
+--    --            if UnitHealth(target) > highest_monster_hp and (UnitCreatureType(target) == 'Humanoid' or UnitCreatureType(target) == 'Beast') then
+--    --                highest_monster_hp = UnitHealth(target)
+--    --                moon_guid = target
+--    --            end
+--    --        end
+--    --    end
+--    --end
+--    --if skull_guid then
+--    --    SetRaidTarget(skull_guid, 8) --skull
+--    --end
+--    --if moon_guid and (not UnitExists('mark5') or UnitIsDead('mark5')) then
+--    --    SetRaidTarget(moon_guid, 5) -- moon
+--    --end
+--end
