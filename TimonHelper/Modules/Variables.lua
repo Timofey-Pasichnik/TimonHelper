@@ -54,7 +54,9 @@ th.spell_names = {
     rend = 'Rend',
     overpower = 'Overpower',
     heroic_strike = 'Heroic Strike',
-    sunder_armor = 'Sunder Armor'
+    sunder_armor = 'Sunder Armor',
+    demoralizing_shout = 'Demoralizing Shout',
+    thunder_clap = 'Thunder Clap'
 }
 th.AOE_mode = false
 th.hostile_targets = 0

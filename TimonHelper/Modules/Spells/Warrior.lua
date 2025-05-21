@@ -17,7 +17,10 @@ th.warrior_spells = {
     },
     rend = {
         spell_name = th.spell_names.rend,
-        action_slot = '27'
+        action_slot = '27',
+        ignored_creature_types = {
+            ['Elemental'] = 1
+        }
     },
     overpower = {
         spell_name = th.spell_names.overpower,
@@ -30,6 +33,14 @@ th.warrior_spells = {
     sunder_armor = {
         spell_name = th.spell_names.sunder_armor,
         action_slot = '28'
+    },
+    demoralizing_shout = {
+        spell_name = th.spell_names.demoralizing_shout,
+        action_slot = '67'
+    },
+    thunder_clap = {
+        spell_name = th.spell_names.thunder_clap,
+        action_slot = '59'
     }
 }
 
@@ -72,6 +83,37 @@ local function BattleShout()
             and UnitMana(th.me) >= 10
     then
         UseAction(battle_shout)
+    end
+end
+
+local function DemoralizingShout()
+    local demoralizing_shout = th.warrior_spells.demoralizing_shout.action_slot
+    if GetActionCooldown(demoralizing_shout) == 0
+            and IsUsableAction(demoralizing_shout) == 1
+            and UnitAffectingCombat(th.me)
+            and UnitExists(th.he)
+            and not UnitIsDead(th.he)
+            and CheckInteractDistance(th.he, th.ranges.forward.closest)
+            and not buffed(th.spell_names.demoralizing_shout, th.he)
+            and UnitMana(th.me) >= 10
+    then
+        UseAction(demoralizing_shout)
+    end
+end
+
+local function ThunderClap()
+    local thunder_clap = th.warrior_spells.thunder_clap.action_slot
+    if GetActionCooldown(thunder_clap) == 0
+            and IsUsableAction(thunder_clap) == 1
+            and UnitAffectingCombat(th.me)
+            and UnitExists(th.he)
+            and not UnitIsDead(th.he)
+            and th.targets.counters.closest + th.targets.counters.close > 3
+            and (not UnitExists('mark5') or not CheckInteractDistance('mark5', th.ranges.forward.close))
+            and not buffed(th.spell_names.thunder_clap, th.he)
+            and UnitMana(th.me) >= 20
+    then
+        UseAction(thunder_clap)
     end
 end
 
@@ -119,6 +161,7 @@ local function Rend()
             and CheckInteractDistance(th.he, th.ranges.forward.closest)
             and not buffed(th.spell_names.rend, th.he)
             and UnitMana(th.me) >= 10
+            and not th.warrior_spells.rend.ignored_creature_types[UnitCreatureType(th.he)]
     then
         UseAction(rend)
     end
@@ -194,8 +237,10 @@ function th.WarriorRotation()
     Charge()
     BloodFury()
     BattleShout()
+    DemoralizingShout()
     Bloodrage()
     Overpower()
+    ThunderClap()
     Hamstring()
     Rend()
     SunderArmor()
@@ -220,13 +265,25 @@ function th.SelectWarriorTarget()
     local moon_guid = 'mark5'
     if UnitExists(skull_guid) then
         TargetUnit(skull_guid)
-    elseif th.targets.counters.closest > 0 then
-        local probable_target = next(th.targets.closest)
+    elseif th.targets.counters.all_ranges == 1 then
+        local probable_target = next(th.targets.all_ranges)
         if probable_target then
             TargetUnit(probable_target)
+            SetRaidTarget(probable_target, 8)
         end
-    elseif not UnitExists(th.he) or UnitIsDead(th.he) then
+    elseif th.targets.counters.closest > 0 then
+        local probable_target = next(th.targets.closest)
+        if probable_target and (not UnitExists(moon_guid) or probable_target ~= th.ExtractGUIDFromUnitName(moon_guid)) then
+            TargetUnit(probable_target)
+            SetRaidTarget(probable_target, 8)
+        end
+    elseif not UnitExists(th.he) then
         TargetNearestEnemy()
+    elseif UnitExists(th.he) and UnitIsDead(th.he) then
+        ClearTarget()
     end
+    --if th.targets.counters.all_ranges > 1 then
+    --    for guid in th.targets.all_ranges do
+    --end
 end
 

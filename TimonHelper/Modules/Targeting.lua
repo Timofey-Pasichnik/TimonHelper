@@ -62,30 +62,32 @@ end)
 local clear_target_list = CreateFrame('Frame')
 clear_target_list:RegisterEvent('PLAYER_REGEN_ENABLED')
 clear_target_list:SetScript('OnEvent', function()
-    th.targets = {
-        closest = {},
-        close = {},
-        far = {},
-        farther = {},
-        farthest = {},
-        all_ranges = {},
-        counters = {
-            all_ranges = 0,
-            closest = 0,
-            close = 0,
-            far = 0,
-            farther = 0,
-            farthest = 0
+    if not th.targets.counters.all_ranges == 0 then
+        th.targets = {
+            closest = {},
+            close = {},
+            far = {},
+            farther = {},
+            farthest = {},
+            all_ranges = {},
+            counters = {
+                all_ranges = 0,
+                closest = 0,
+                close = 0,
+                far = 0,
+                farther = 0,
+                farthest = 0
+            }
         }
-    }
-    print(string.format('Clearing table. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
-            th.targets.counters.all_ranges,
-            th.targets.counters.closest,
-            th.targets.counters.close,
-            th.targets.counters.far,
-            th.targets.counters.farther,
-            th.targets.counters.farthest)
-    )
+        print(string.format('Clearing table. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
+                th.targets.counters.all_ranges,
+                th.targets.counters.closest,
+                th.targets.counters.close,
+                th.targets.counters.far,
+                th.targets.counters.farther,
+                th.targets.counters.farthest)
+        )
+    end
 end)
 
 function EditHostileTargetTable(participant, action)
@@ -113,7 +115,6 @@ function EditHostileTargetTable(participant, action)
             local current_range_in_table_name = th.ranges.backward[current_range_in_table_int]
             if current_range_in_table_int ~= distance_index then
                 --check if target in list changed their distance
-                print('were here')
                 if not th.targets[distance_name][participant] then
                     th.targets[distance_name][participant] = {}
                 end
