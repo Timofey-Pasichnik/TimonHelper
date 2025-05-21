@@ -15,15 +15,21 @@ th.targets = {
     }
 }
 
-local function CanAddTargetToTargetsList(target)
-    return target
-            and UnitExists(target)
-            and UnitReaction(target, th.me) < 5
-            and not UnitIsDead(target)
-            and UnitAffectingCombat(target)
-            and (UnitHealth(target) == UnitHealthMax(target) or UnitIsTappedByPlayer(target))
-            and not th.target_list.all_ranges[target].guid
-end
+local cc_priority_list = {
+    ['Ragefire Chasm'] = {
+        ['Ragefire Shaman'] = 1
+    }
+}
+
+--local function CanAddTargetToTargetsList(target)
+--    return target
+--            and UnitExists(target)
+--            and UnitReaction(target, th.me) < 5
+--            and not UnitIsDead(target)
+--            and UnitAffectingCombat(target)
+--            and (UnitHealth(target) == UnitHealthMax(target) or UnitIsTappedByPlayer(target))
+--            and not th.target_list.all_ranges[target].guid
+--end
 
 local function CanAttackFightingTarget(target)
     return target
@@ -33,12 +39,12 @@ local function CanAttackFightingTarget(target)
             and UnitAffectingCombat(target)
 end
 
-local function CanAttackNonFightingTarget(target)
-    return UnitExists(target)
-            and UnitReaction(target, th.me) < 5
-            and not UnitIsDead(target)
-            and not UnitAffectingCombat(target)
-end
+--local function CanAttackNonFightingTarget(target)
+--    return UnitExists(target)
+--            and UnitReaction(target, th.me) < 5
+--            and not UnitIsDead(target)
+--            and not UnitAffectingCombat(target)
+--end
 
 local involved_targets = CreateFrame('Frame')
 involved_targets:RegisterEvent('RAW_COMBATLOG')
@@ -56,13 +62,13 @@ involved_targets:SetScript('OnEvent', function()
         EditHostileTargetTable(participant, arg1)
     end
     --th.IsAOEMode()
-    --th.SetMarks()
+    th.SetMarks()
 end)
 
 local clear_target_list = CreateFrame('Frame')
 clear_target_list:RegisterEvent('PLAYER_REGEN_ENABLED')
 clear_target_list:SetScript('OnEvent', function()
-    if not th.targets.counters.all_ranges == 0 then
+    --if not th.targets.counters.all_ranges == 0 then
         th.targets = {
             closest = {},
             close = {},
@@ -79,15 +85,15 @@ clear_target_list:SetScript('OnEvent', function()
                 farthest = 0
             }
         }
-        print(string.format('Clearing table. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
-                th.targets.counters.all_ranges,
-                th.targets.counters.closest,
-                th.targets.counters.close,
-                th.targets.counters.far,
-                th.targets.counters.farther,
-                th.targets.counters.farthest)
-        )
-    end
+        --print(string.format('Clearing table. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
+        --        th.targets.counters.all_ranges,
+        --        th.targets.counters.closest,
+        --        th.targets.counters.close,
+        --        th.targets.counters.far,
+        --        th.targets.counters.farther,
+        --        th.targets.counters.farthest)
+        --)
+    --end
 end)
 
 function EditHostileTargetTable(participant, action)
@@ -152,10 +158,104 @@ function EditHostileTargetTable(participant, action)
                 th.targets.counters.farthest)
         )
         SetRaidTarget(participant, 0)
+        if UnitExists(th.he) and th.ExtractGUIDFromUnitName(th.he) == participant then
+            ClearTarget()
+        end
     end
 end
 
---function th.SetMarks()
+function th.SetMarks()
+    local skull_int = 8
+    local moon_int = 5
+    local diamond_int = 3
+    local skull_str = 'mark8'
+    local moon_str = 'mark5'
+    local diamond_str = 'mark3'
+    local skull_guid
+    local moon_guid
+    local diamond_guid
+    if UnitExists(skull_str) and not UnitIsDead(skull_str) then
+        skull_guid = th.ExtractGUIDFromUnitName(skull_str)
+    end
+    if UnitExists(moon_str) and not UnitIsDead(moon_str) then
+        moon_guid = th.ExtractGUIDFromUnitName(moon_str)
+    end
+    if UnitExists(diamond_str) and not UnitIsDead(diamond_str) then
+        diamond_guid = th.ExtractGUIDFromUnitName(diamond_str)
+    end
+    if th.targets.counters.all_ranges == 0 and CanAttackFightingTarget(th.he) then
+        SetRaidTarget(th.he, skull_int)
+    elseif th.targets.counters.all_ranges == 1 then
+        SetRaidTarget(next(th.targets.all_ranges), skull_int)
+    elseif th.targets.counters.all_ranges > 1 then
+        for guid in th.targets.all_ranges do
+            if not moon_guid and cc_priority_list[GetZoneText()][UnitName(guid)] then
+                moon_guid = guid
+                SetRaidTarget(moon_guid, moon_int)
+                break
+            elseif moon_guid and cc_priority_list[GetZoneText()][UnitName(guid)] and not cc_priority_list[GetZoneText()][UnitName(moon_guid)] then
+                moon_guid = guid
+                SetRaidTarget(moon_guid, moon_int)
+                break
+            elseif not skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) then
+                skull_guid = guid
+                SetRaidTarget(skull_guid, skull_int)
+                break
+            elseif not moon_guid and (UnitCreatureType(guid) == 'Humanoid' or UnitCreatureType(guid) == 'Beast') then
+                moon_guid = guid
+                SetRaidTarget(moon_guid, moon_int)
+                break
+            elseif not moon_guid and (not skull_guid or guid ~= skull_guid) then
+                moon_guid = guid
+                SetRaidTarget(moon_guid, moon_int)
+                break
+            end
+        end
+    end
+end
+
+--        if not moon_guid then
+--            --print('test')
+--            if 1 == 1 then
+--                for guid in th.targets.all_ranges do
+--                    if cc_priority_list[UnitName(guid)] then
+--                        moon_guid = guid
+--                        SetRaidTarget(moon_guid, moon_int)
+--                        break
+--                    end
+--                end
+--            elseif th.targets.counters.closest == 1 and next(th.targets.closest) and not UnitIsDead(next(th.targets.closest)) then
+--                skull_guid = next(th.targets.closest)
+--                SetRaidTarget(skull_guid, skull_int)
+--                for guid in th.targets.all_ranges do
+--                    if guid ~= skull_guid then
+--                        moon_guid = guid
+--                        SetRaidTarget(moon_guid, moon_int)
+--                        break
+--                    end
+--                end
+--            end
+--        else
+--            for guid in th.targets.all_ranges do
+--                if guid ~= moon_guid then
+--                    skull_guid = guid
+--                    SetRaidTarget(skull_guid, skull_int)
+--                    break
+--                end
+--            end
+--        end
+--    elseif th.targets.counters.all_ranges == 3 then
+--        if moon_guid and skull_guid and not diamond_guid then
+--            for guid in th.targets.all_ranges do
+--                if (guid ~= moon_guid and guid ~= skull_guid) then
+--                    diamond_guid = guid
+--                    SetRaidTarget(diamond_guid, diamond_int)
+--                    break
+--                end
+--            end
+--        end
+--    end
+--end
 --    local skull_guid = nil
 --    local moon_guid = nil
 --    local skull_id = 8
