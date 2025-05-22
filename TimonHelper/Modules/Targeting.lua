@@ -174,17 +174,6 @@ function th.SetMarks()
         lowest_monster_hp = UnitHealth(th.he)
     elseif th.targets.counters.all_ranges == 1 then
         skull_guid = next(th.targets.all_ranges)
-        if skull_guid ~= th.ExtractGUIDFromUnitName(th.he) then
-            print('GUIDS are not equal!')
-            print('target guid is ' .. th.ExtractGUIDFromUnitName(th.he))
-            print('skull_guid is ' .. skull_guid)
-        end
-        if GetRaidTargetIndex(skull_guid) and GetRaidTargetIndex(skull_guid) ~= 8 then
-            SetRaidTarget(skull_guid, 8)
-        end
-
-        --SetRaidTarget(skull_guid, 8)
-        --SetRaidTarget(skull_guid, skull_int)
         lowest_monster_hp = UnitHealth(skull_guid)
     elseif th.targets.counters.all_ranges > 1 then
         for guid in th.targets.all_ranges do
@@ -205,15 +194,16 @@ function th.SetMarks()
             elseif not moon_guid and (not skull_guid or guid ~= skull_guid) then
                 moon_guid = guid
                 break
-            elseif not skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) and not lowest_monster_guid then
+            elseif not skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) and not lowest_monster_guid and UnitHealth(guid) > 0 then
                 skull_guid = guid
                 lowest_monster_hp = UnitHealth(guid)
-            elseif skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) and UnitHealth(guid) < UnitHealth(skull_guid) then
+            elseif skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) and UnitHealth(guid) < UnitHealth(skull_guid) and UnitHealth(guid) > 0 then
                 skull_guid = guid
                 lowest_monster_hp = UnitHealth(guid)
             end
         end
+        if moon_guid then SetRaidTarget(moon_guid, moon_int) end
     end
     if skull_guid then SetRaidTarget(skull_guid, skull_int) end
-    if moon_guid then SetRaidTarget(moon_guid, moon_int) end
+
 end
