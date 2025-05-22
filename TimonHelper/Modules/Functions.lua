@@ -46,15 +46,3 @@ function th.CurrentDistanceToTarget(target)
         return distance_name, distance_index
     end
 end
-
-function test_elsif(number)
-    local given_number
-    if number == 1 then
-        given_number = 1
-    elseif number == 2 then
-        given_number = 2
-    else
-        given_number = 3
-    end
-    return given_number
-end

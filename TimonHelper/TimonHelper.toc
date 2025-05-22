@@ -6,6 +6,7 @@
 Modules\Variables.lua
 Modules\Functions.lua
 Modules\Targeting.lua
+Modules\Drinking.lua
 Modules\Combat.lua
 Modules\AOE.lua
 Modules\Spells\Common.lua

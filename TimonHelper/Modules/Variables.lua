@@ -58,5 +58,10 @@ th.spell_names = {
     demoralizing_shout = 'Demoralizing Shout',
     thunder_clap = 'Thunder Clap'
 }
+th.potions = {
+    minor_healing_potion = 'Minor Healing Potion',
+    lesser_healing_potion = 'Lesser Healing Potion',
+    healing_potion = 'Healing Potion'
+}
 th.AOE_mode = false
 th.hostile_targets = 0

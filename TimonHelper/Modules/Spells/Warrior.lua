@@ -264,29 +264,22 @@ end
 function th.SelectWarriorTarget()
     local skull_guid = 'mark8'
     local moon_guid = 'mark5'
-    if UnitExists(th.he) and UnitIsDead(th.he) then
-        ClearTarget()
-    elseif UnitExists(skull_guid) then
+    if CanAttackTarget(skull_guid) then
         TargetUnit(skull_guid)
     elseif th.targets.counters.all_ranges == 1 then
         local probable_target = next(th.targets.all_ranges)
         if probable_target then
             TargetUnit(probable_target)
-            --SetRaidTarget(probable_target, 8)
         end
     elseif th.targets.counters.closest > 0 then
         local probable_target = next(th.targets.closest)
         if probable_target and (not UnitExists(moon_guid) or probable_target ~= th.ExtractGUIDFromUnitName(moon_guid)) then
             TargetUnit(probable_target)
-            --SetRaidTarget(probable_target, 8)
         end
     elseif not UnitExists(th.he) then
         TargetNearestEnemy()
     elseif UnitExists(th.he) and UnitIsDead(th.he) then
         ClearTarget()
     end
-    --if th.targets.counters.all_ranges > 1 then
-    --    for guid in th.targets.all_ranges do
-    --end
 end
 

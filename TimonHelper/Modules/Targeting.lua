@@ -17,19 +17,10 @@ th.targets = {
 
 local cc_priority_list = {
     ['Ragefire Chasm'] = {
+        ['Oggleflint'] = 2,
         ['Ragefire Shaman'] = 1
     }
 }
-
---local function CanAddTargetToTargetsList(target)
---    return target
---            and UnitExists(target)
---            and UnitReaction(target, th.me) < 5
---            and not UnitIsDead(target)
---            and UnitAffectingCombat(target)
---            and (UnitHealth(target) == UnitHealthMax(target) or UnitIsTappedByPlayer(target))
---            and not th.target_list.all_ranges[target].guid
---end
 
 local function CanAttackFightingTarget(target)
     return target
@@ -39,12 +30,12 @@ local function CanAttackFightingTarget(target)
             and UnitAffectingCombat(target)
 end
 
---local function CanAttackNonFightingTarget(target)
---    return UnitExists(target)
---            and UnitReaction(target, th.me) < 5
---            and not UnitIsDead(target)
---            and not UnitAffectingCombat(target)
---end
+function CanAttackTarget(target)
+    return target
+            and UnitExists(target)
+            and UnitReaction(target, th.me) < 5
+            and not UnitIsDead(target)
+end
 
 local involved_targets = CreateFrame('Frame')
 involved_targets:RegisterEvent('RAW_COMBATLOG')
@@ -61,39 +52,28 @@ involved_targets:SetScript('OnEvent', function()
     for _, participant in ipairs(participants) do
         EditHostileTargetTable(participant, arg1)
     end
-    --th.IsAOEMode()
     th.SetMarks()
 end)
 
 local clear_target_list = CreateFrame('Frame')
 clear_target_list:RegisterEvent('PLAYER_REGEN_ENABLED')
 clear_target_list:SetScript('OnEvent', function()
-    --if not th.targets.counters.all_ranges == 0 then
-        th.targets = {
-            closest = {},
-            close = {},
-            far = {},
-            farther = {},
-            farthest = {},
-            all_ranges = {},
-            counters = {
-                all_ranges = 0,
-                closest = 0,
-                close = 0,
-                far = 0,
-                farther = 0,
-                farthest = 0
-            }
+    th.targets = {
+        closest = {},
+        close = {},
+        far = {},
+        farther = {},
+        farthest = {},
+        all_ranges = {},
+        counters = {
+            all_ranges = 0,
+            closest = 0,
+            close = 0,
+            far = 0,
+            farther = 0,
+            farthest = 0
         }
-        --print(string.format('Clearing table. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
-        --        th.targets.counters.all_ranges,
-        --        th.targets.counters.closest,
-        --        th.targets.counters.close,
-        --        th.targets.counters.far,
-        --        th.targets.counters.farther,
-        --        th.targets.counters.farthest)
-        --)
-    --end
+    }
 end)
 
 function EditHostileTargetTable(participant, action)
@@ -141,28 +121,33 @@ function EditHostileTargetTable(participant, action)
         end
 
     end
-    if action == 'CHAT_MSG_COMBAT_HOSTILE_DEATH' and th.targets.all_ranges[participant] then
-        --if target dies, remove it from all target lists and unassign raid mark
-        local current_range_in_table_int = th.targets.all_ranges[participant].range
-        local current_range_in_table_name = th.ranges.backward[current_range_in_table_int]
-        th.targets.all_ranges[participant] = nil
-        th.targets.counters.all_ranges = th.targets.counters.all_ranges - 1
-        th.targets[current_range_in_table_name][participant] = nil
-        th.targets.counters[current_range_in_table_name] = th.targets.counters[current_range_in_table_name] - 1
-        print(string.format('Target dead. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
+    if action == 'CHAT_MSG_COMBAT_HOSTILE_DEATH' then
+        SetRaidTarget(participant, 0)
+        if UnitExists(th.he) and th.ExtractGUIDFromUnitName(th.he) == participant then
+            ClearTarget()
+        end
+        if th.targets.all_ranges[participant] then
+            --if target dies, remove it from all target lists and unassign raid mark
+            local current_range_in_table_int = th.targets.all_ranges[participant].range
+            local current_range_in_table_name = th.ranges.backward[current_range_in_table_int]
+            th.targets.all_ranges[participant] = nil
+            th.targets.counters.all_ranges = th.targets.counters.all_ranges - 1
+            th.targets[current_range_in_table_name][participant] = nil
+            th.targets.counters[current_range_in_table_name] = th.targets.counters[current_range_in_table_name] - 1
+            print(string.format('Target dead. Targets now: total: %s, closest: %s, close: %s, far: %s, farther: %s, farthest: %s',
                 th.targets.counters.all_ranges,
                 th.targets.counters.closest,
                 th.targets.counters.close,
                 th.targets.counters.far,
                 th.targets.counters.farther,
                 th.targets.counters.farthest)
-        )
-        SetRaidTarget(participant, 0)
-        if UnitExists(th.he) and th.ExtractGUIDFromUnitName(th.he) == participant then
-            ClearTarget()
+            )
         end
     end
 end
+
+
+local lowest_monster_hp
 
 function th.SetMarks()
     local skull_int = 8
@@ -184,141 +169,51 @@ function th.SetMarks()
         diamond_guid = th.ExtractGUIDFromUnitName(diamond_str)
     end
     if th.targets.counters.all_ranges == 0 and CanAttackFightingTarget(th.he) then
-        SetRaidTarget(th.he, skull_int)
+        skull_guid = th.ExtractGUIDFromUnitName(th.he)
+        SetRaidTarget(skull_guid, skull_int)
+        lowest_monster_hp = UnitHealth(th.he)
     elseif th.targets.counters.all_ranges == 1 then
-        SetRaidTarget(next(th.targets.all_ranges), skull_int)
+        skull_guid = next(th.targets.all_ranges)
+        if skull_guid ~= th.ExtractGUIDFromUnitName(th.he) then
+            print('GUIDS are not equal!')
+            print('target guid is ' .. th.ExtractGUIDFromUnitName(th.he))
+            print('skull_guid is ' .. skull_guid)
+        end
+        if GetRaidTargetIndex(skull_guid) and GetRaidTargetIndex(skull_guid) ~= 8 then
+            SetRaidTarget(skull_guid, 8)
+        end
+
+        --SetRaidTarget(skull_guid, 8)
+        --SetRaidTarget(skull_guid, skull_int)
+        lowest_monster_hp = UnitHealth(skull_guid)
     elseif th.targets.counters.all_ranges > 1 then
         for guid in th.targets.all_ranges do
             if not moon_guid and cc_priority_list[GetZoneText()][UnitName(guid)] then
                 moon_guid = guid
-                SetRaidTarget(moon_guid, moon_int)
                 break
             elseif moon_guid and cc_priority_list[GetZoneText()][UnitName(guid)] and not cc_priority_list[GetZoneText()][UnitName(moon_guid)] then
                 moon_guid = guid
-                SetRaidTarget(moon_guid, moon_int)
                 break
-            elseif not skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) then
-                skull_guid = guid
-                SetRaidTarget(skull_guid, skull_int)
+            elseif moon_guid and cc_priority_list[GetZoneText()][UnitName(guid)]
+                    and cc_priority_list[GetZoneText()][UnitName(moon_guid)]
+                    and cc_priority_list[GetZoneText()][UnitName(guid)] > cc_priority_list[GetZoneText()][UnitName(moon_guid)] then
+                moon_guid = guid
                 break
             elseif not moon_guid and (UnitCreatureType(guid) == 'Humanoid' or UnitCreatureType(guid) == 'Beast') then
                 moon_guid = guid
-                SetRaidTarget(moon_guid, moon_int)
                 break
             elseif not moon_guid and (not skull_guid or guid ~= skull_guid) then
                 moon_guid = guid
-                SetRaidTarget(moon_guid, moon_int)
                 break
+            elseif not skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) and not lowest_monster_guid then
+                skull_guid = guid
+                lowest_monster_hp = UnitHealth(guid)
+            elseif skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) and UnitHealth(guid) < UnitHealth(skull_guid) then
+                skull_guid = guid
+                lowest_monster_hp = UnitHealth(guid)
             end
         end
     end
+    if skull_guid then SetRaidTarget(skull_guid, skull_int) end
+    if moon_guid then SetRaidTarget(moon_guid, moon_int) end
 end
-
---        if not moon_guid then
---            --print('test')
---            if 1 == 1 then
---                for guid in th.targets.all_ranges do
---                    if cc_priority_list[UnitName(guid)] then
---                        moon_guid = guid
---                        SetRaidTarget(moon_guid, moon_int)
---                        break
---                    end
---                end
---            elseif th.targets.counters.closest == 1 and next(th.targets.closest) and not UnitIsDead(next(th.targets.closest)) then
---                skull_guid = next(th.targets.closest)
---                SetRaidTarget(skull_guid, skull_int)
---                for guid in th.targets.all_ranges do
---                    if guid ~= skull_guid then
---                        moon_guid = guid
---                        SetRaidTarget(moon_guid, moon_int)
---                        break
---                    end
---                end
---            end
---        else
---            for guid in th.targets.all_ranges do
---                if guid ~= moon_guid then
---                    skull_guid = guid
---                    SetRaidTarget(skull_guid, skull_int)
---                    break
---                end
---            end
---        end
---    elseif th.targets.counters.all_ranges == 3 then
---        if moon_guid and skull_guid and not diamond_guid then
---            for guid in th.targets.all_ranges do
---                if (guid ~= moon_guid and guid ~= skull_guid) then
---                    diamond_guid = guid
---                    SetRaidTarget(diamond_guid, diamond_int)
---                    break
---                end
---            end
---        end
---    end
---end
---    local skull_guid = nil
---    local moon_guid = nil
---    local skull_id = 8
---    local moon_id = 5
---
---    if th.hostile_targets == 0 then
---        if CanAttackNonFightingTarget(th.he) then
---            skull_guid = th.ExtractGUIDFromUnitName(th.he)
---        end
---    end
---    if th.hostile_targets == 1 then
---        if next(th.target_list) then
---            local target =  next(th.target_list)
---            if CanAttackFightingTarget(target) then
---                skull_guid = th.ExtractGUIDFromUnitName(th.he)
---            end
---        end
---    end
---    if th.hostile_targets > 1 then --set moon first in this case
---        for target in th.target_list do
---            --if not CheckInteractDistance(target, th.ranges.closest) and
---
---        end
---        local close_range_index = 3--farthest 4, then 2, then 1 and closest is 3
---        local appropriate_skull_target
---        for target in th.target_list do
---            if CheckInteractDistance(target, close_range_index)
---
---            end
---        end
---    end
---    if skull_guid then
---        SetRaidTarget(skull_guid, skull_id)
---    end
---    ----set up skull
---    --if th.hostile_targets == 0 and UnitExists(he) then
---    --    skull_guid = th.ExtractGUIDFromUnitName(he)
---    --end
---    --
---    --if th.hostile_targets == 1 and next(th.target_list) and UnitExists(next(th.target_list)) and not UnitIsDead(next(th.target_list)) then
---    --    skull_guid = next(th.target_list)
---    --end
---    --
---    --if th.hostile_targets > 1 then
---    --    local lowest_monster_hp = 1000000000
---    --    local highest_monster_hp = 0
---    --    for target in th.target_list do
---    --        if UnitExists(target) and not UnitIsDead(target) then
---    --            if UnitHealth(target) < lowest_monster_hp and target ~= th.ExtractGUIDFromUnitName('mark5') then
---    --                lowest_monster_hp = UnitHealth(target)
---    --                skull_guid = target
---    --            end
---    --            if UnitHealth(target) > highest_monster_hp and (UnitCreatureType(target) == 'Humanoid' or UnitCreatureType(target) == 'Beast') then
---    --                highest_monster_hp = UnitHealth(target)
---    --                moon_guid = target
---    --            end
---    --        end
---    --    end
---    --end
---    --if skull_guid then
---    --    SetRaidTarget(skull_guid, 8) --skull
---    --end
---    --if moon_guid and (not UnitExists('mark5') or UnitIsDead('mark5')) then
---    --    SetRaidTarget(moon_guid, 5) -- moon
---    --end
---end
