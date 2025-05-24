@@ -14,6 +14,7 @@ local friend_list = {
     ['Murah'] = { name = 'Murah' },
     ['Nosko'] = { name = 'Nosko' },
     ['Olis'] = { name = 'Olis' },
+    ['Orgsum'] = { name = 'Orgsum' },
     ['Paudes'] = { name = 'Paudes' },
     ['Qoldrey'] = { name = 'Qoldrey' },
     ['Rnawe'] = { name = 'Rnawe' },

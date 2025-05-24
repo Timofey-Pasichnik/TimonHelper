@@ -1,17 +1,49 @@
+local current_party = {
+    counter = 0,
+    setup = {}
+}
+
 local type_of_group
 
 local presets_types = {
     dungeon = 'dungeon'
 }
 
-local hiring_frame = CreateFrame('Frame')
-hiring_frame:RegisterEvent('PARTY_MEMBERS_CHANGED')
-hiring_frame:SetScript('OnEvent', function()
+function th.FillCurrentPartyTable()
+    print('ima filin script')
+    local party_members = GetNumPartyMembers()
+    local raid_members = GetNumRaidMembers()
+    local no_party_members = party_members == 0
+    local no_raid_members = raid_members == 0
+    local alone = no_party_members and no_raid_members
+    local event_duplicate = alone and current_party.counter == 1
+            or not alone and no_raid_members and party_members == current_party.counter - 1
+            or not alone and not no_raid_members and raid_members == current_party.counter
+    if not event_duplicate then
+        if raid_members == 0 and party_members == 0 and current_party.counter == 0 then
+            current_party.counter = 1
+            current_party.setup[th.my_name] = {
+                race = th.my_race,
+                class = th.my_class,
+                is_bot = nil,
+                name = th.my_name,
+                role = 'player',
+                spec = 'player'
+            }
+        end
+        print('Current party setup is: ')
+        print('Members total: ' .. current_party.counter)
+        for _, party_members_data in current_party.setup do
+            print('Name: ' .. party_members_data.name)
+        end
+    end
+end
+
+function th.CheckBeforeHiring()
     if type_of_group and presets_types[type_of_group] then
-        --print('current party length is ' .. GetNumPartyMembers())
         th.HireComps(type_of_group)
     end
-end)
+end
 
 local dungeon_presets = {
     orc_warrior = {
@@ -52,8 +84,6 @@ local function HiringLogic(preset)
     if not index_to_hire then
         index_to_hire = index
     end
-    --print('Trying to hire member with index ' .. index)
-    --print('Time of calling is ' .. GetTime())
     if index == index_to_hire then
         local party_index = 'party_' .. index
         SendChatMessage(string.format('.z addinvite %s t0d %s %s default %s %s',
@@ -74,7 +104,6 @@ end
 function th.HireComps(preset)
     if presets_types[preset] then
         type_of_group = preset
-        --print('type_of_group now is ' .. type_of_group)
         if preset == presets_types.dungeon then
             if th.my_race == th.races.orc and th.my_class == th.classes.warrior then
                 HiringLogic(dungeon_presets.orc_warrior)
