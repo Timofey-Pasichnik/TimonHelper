@@ -177,15 +177,16 @@ function th.SetMarks()
         lowest_monster_hp = UnitHealth(skull_guid)
     elseif th.targets.counters.all_ranges > 1 then
         for guid in th.targets.all_ranges do
-            if not moon_guid and cc_priority_list[GetZoneText()][UnitName(guid)] then
+            local zone = GetZoneText()
+            if not moon_guid and cc_priority_list[zone] and cc_priority_list[zone][UnitName(guid)] then
                 moon_guid = guid
                 break
-            elseif moon_guid and cc_priority_list[GetZoneText()][UnitName(guid)] and not cc_priority_list[GetZoneText()][UnitName(moon_guid)] then
+            elseif moon_guid and cc_priority_list[zone] and cc_priority_list[zone][UnitName(guid)] and not cc_priority_list[zone][UnitName(moon_guid)] then
                 moon_guid = guid
                 break
-            elseif moon_guid and cc_priority_list[GetZoneText()][UnitName(guid)]
-                    and cc_priority_list[GetZoneText()][UnitName(moon_guid)]
-                    and cc_priority_list[GetZoneText()][UnitName(guid)] > cc_priority_list[GetZoneText()][UnitName(moon_guid)] then
+            elseif moon_guid and cc_priority_list[zone] and cc_priority_list[zone][UnitName(guid)]
+                    and cc_priority_list[zone][UnitName(moon_guid)]
+                    and cc_priority_list[zone][UnitName(guid)] > cc_priority_list[zone][UnitName(moon_guid)] then
                 moon_guid = guid
                 break
             elseif not moon_guid and (UnitCreatureType(guid) == 'Humanoid' or UnitCreatureType(guid) == 'Beast') then
@@ -198,6 +199,24 @@ function th.SetMarks()
                 skull_guid = guid
                 lowest_monster_hp = UnitHealth(guid)
             elseif skull_guid and (th.targets.closest[guid] or th.targets.close[guid]) and (not moon_guid or moon_guid ~= guid) and UnitHealth(guid) < UnitHealth(skull_guid) and UnitHealth(guid) > 0 then
+                skull_guid = guid
+                lowest_monster_hp = UnitHealth(guid)
+            elseif not skull_guid and th.targets.far[guid] and (not moon_guid or moon_guid ~= guid) and not lowest_monster_guid and UnitHealth(guid) > 0 then
+                skull_guid = guid
+                lowest_monster_hp = UnitHealth(guid)
+            elseif skull_guid and th.targets.far[guid] and (not moon_guid or moon_guid ~= guid) and UnitHealth(guid) < UnitHealth(skull_guid) and UnitHealth(guid) > 0 then
+                skull_guid = guid
+                lowest_monster_hp = UnitHealth(guid)
+            elseif not skull_guid and th.targets.farther[guid] and (not moon_guid or moon_guid ~= guid) and not lowest_monster_guid and UnitHealth(guid) > 0 then
+                skull_guid = guid
+                lowest_monster_hp = UnitHealth(guid)
+            elseif skull_guid and th.targets.farther[guid] and (not moon_guid or moon_guid ~= guid) and UnitHealth(guid) < UnitHealth(skull_guid) and UnitHealth(guid) > 0 then
+                skull_guid = guid
+                lowest_monster_hp = UnitHealth(guid)
+            elseif not skull_guid and th.targets.farthest[guid] and (not moon_guid or moon_guid ~= guid) and not lowest_monster_guid and UnitHealth(guid) > 0 then
+                skull_guid = guid
+                lowest_monster_hp = UnitHealth(guid)
+            elseif skull_guid and th.targets.farthest[guid] and (not moon_guid or moon_guid ~= guid) and UnitHealth(guid) < UnitHealth(skull_guid) and UnitHealth(guid) > 0 then
                 skull_guid = guid
                 lowest_monster_hp = UnitHealth(guid)
             end

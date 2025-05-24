@@ -82,3 +82,7 @@ function th.HireComps(preset)
         end
     end
 end
+
+function th.SummonPlayer(summoning_comp_owner, assist_owner)
+    print('kek')
+end

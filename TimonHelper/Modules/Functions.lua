@@ -46,3 +46,16 @@ function th.CurrentDistanceToTarget(target)
         return distance_name, distance_index
     end
 end
+
+function th.RunWithDelay(command_to_execute, arguments_for_command, delay_before_execute)
+    local timer_frame = CreateFrame('Frame')
+    local timer = 0
+    timer_frame:SetScript('OnUpdate', function()
+        timer = timer + arg1
+        if timer >= delay_before_execute then
+            timer = 0
+            command_to_execute(arguments_for_command)
+            timer_frame:SetScript('OnUpdate', nil)
+        end
+    end)
+end

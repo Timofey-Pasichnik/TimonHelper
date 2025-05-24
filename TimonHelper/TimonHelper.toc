@@ -12,4 +12,8 @@ Modules\AOE.lua
 Modules\Spells\Common.lua
 Modules\Spells\Warrior.lua
 Modules\Hiring.lua
+Modules\Events.lua
+Modules\Combat.lua
+Modules\Marks.lua
+Modules\Friends.lua
 Core.lua
