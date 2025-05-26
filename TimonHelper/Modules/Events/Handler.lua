@@ -11,18 +11,7 @@ for _, event in pairs(event_list) do
     event_handler:RegisterEvent(event)
 end
 
-local function ProcessChatMsgAddonEvent(prefix, text, channel, sender, target, zone_channel_id, local_id, name, instance_id)
-    print('=========================')
-    print('prefix is: ' .. prefix)
-    print('text is: ' .. text)
-    print('channel is: ' .. channel)
-    print('sender is: ' .. sender)
-    print('target is: ' .. target)
-    print('zone_channel_id is: ' .. zone_channel_id)
-    print('local_id is: ' .. local_id)
-    print('name is: ' .. name)
-    print('instance_id is: ' .. instance_id)
-end
+
 
 event_handler:SetScript('OnEvent', function()
     if event == event_list.player_login then
@@ -31,7 +20,7 @@ event_handler:SetScript('OnEvent', function()
         th.CheckBeforeHiring()
         th.FillCurrentPartyTable()
     elseif event == event_list.chat_msg_addon then
-        ProcessChatMsgAddonEvent(arg1 or 0, arg2 or 0, arg3 or 0, arg4 or 0, arg5 or 0, arg6 or 0, arg7 or 0, arg8 or 0, arg9 or 0)
+        th.ProcessChatMsgAddonEvent(arg1 or 0, arg2 or 0, arg3 or 0, arg4 or 0, arg5 or 0, arg6 or 0, arg7 or 0, arg8 or 0, arg9 or 0)
     elseif event == event_list.chat_msg_system then
         if string.find(arg1, 'Verad') then print('Verad found') end
     end

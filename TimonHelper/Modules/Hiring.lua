@@ -10,7 +10,7 @@ local presets_types = {
 }
 
 function th.FillCurrentPartyTable()
-    print('ima filin script')
+    --print('ima filin script')
     local party_members = GetNumPartyMembers()
     local raid_members = GetNumRaidMembers()
     local no_party_members = party_members == 0
@@ -27,15 +27,62 @@ function th.FillCurrentPartyTable()
                 class = th.my_class,
                 is_bot = nil,
                 name = th.my_name,
+                level = th.my_level,
                 role = 'player',
                 spec = 'player'
             }
+        end
+        if raid_members == 0 and party_members > 0 and current_party.counter ~= party_members + 1 then
+            print('party_members: ' .. party_members + 1)
+            print('current_party.counter: ' .. current_party.counter)
+            local party_member_str = 'party' .. party_members
+            local party_member_name = UnitName(party_member_str)
+            print('party_member_name is ' .. party_member_name)
+            local party_member_race = UnitRace(party_member_str)
+            print('party_member_race ' .. party_member_race)
+            local party_member_class = UnitClass(party_member_str)
+            print('party_member_class is ' .. party_member_class)
+            local party_member_level = UnitLevel(party_member_str)
+            print('party_member_level is ' .. party_member_level)
+            current_party.counter = current_party.counter + 1
+            current_party.setup[party_member_name] = {
+                race = party_member_race or 0,
+                class = party_member_class or 0,
+                name = party_member_name or 0,
+                level = party_member_level or 0
+            }
+            SendAddonMessage('nexus', 'GRINFO:ALL:FULL', 'BATTLEGROUND')
+            print('party_member_str is: ' .. party_member_str)
         end
         print('Current party setup is: ')
         print('Members total: ' .. current_party.counter)
         for _, party_members_data in current_party.setup do
             print('Name: ' .. party_members_data.name)
         end
+    end
+end
+
+function th.GetPartyInfoFromCallback(data)
+    local temp_substring = data
+    local space_position = string.find(data, ' ')
+    local start_position = 1
+    local end_position
+    temp_substring = string.sub(temp_substring, space_position + 1)
+    end_position = string.find(temp_substring, ':') - 1
+    local bot_name = string.sub(temp_substring, start_position, end_position)
+    temp_substring = string.sub(temp_substring, end_position + 2)
+    end_position = string.find(temp_substring, ':') - 1
+    local bot_race = string.sub(temp_substring, start_position, end_position)
+    temp_substring = string.sub(temp_substring, end_position + 2)
+    end_position = string.find(temp_substring, ':') - 1
+    local bot_class = string.sub(temp_substring, start_position, end_position)
+    temp_substring = string.sub(temp_substring, end_position + 2)
+    end_position = string.find(temp_substring, ':') - 1
+    local bot_role = string.sub(temp_substring, start_position, end_position)
+    temp_substring = string.sub(temp_substring, end_position + 2)
+    local bot_owner = string.sub(temp_substring, start_position)
+    if bot_name and bot_race and bot_class and bot_role and bot_owner and current_party.setup[bot_name] then
+        --print('kek')
     end
 end
 
