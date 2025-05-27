@@ -3,6 +3,7 @@ th.me = 'player'
 th.he = 'target'
 th.my_name = UnitName(th.me)
 th.my_class = UnitClass(th.me)
+th.my_level = UnitLevel(th.me)
 th.classes = {
     warrior = 'Warrior',
     shaman = 'Shaman',

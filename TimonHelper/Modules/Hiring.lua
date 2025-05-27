@@ -10,59 +10,73 @@ local presets_types = {
 }
 
 function th.FillCurrentPartyTable()
-    --print('ima filin script')
     local party_members = GetNumPartyMembers()
+    local party_member_str = 'party' .. party_members
+    local party_member_name = UnitName(party_member_str)
+    local party_member_race
+    local party_member_class
+    local party_member_level
     local raid_members = GetNumRaidMembers()
     local no_party_members = party_members == 0
     local no_raid_members = raid_members == 0
     local alone = no_party_members and no_raid_members
-    local event_duplicate = alone and current_party.counter == 1
-            or not alone and no_raid_members and party_members == current_party.counter - 1
-            or not alone and not no_raid_members and raid_members == current_party.counter
-    if not event_duplicate then
-        if raid_members == 0 and party_members == 0 and current_party.counter == 0 then
-            current_party.counter = 1
-            current_party.setup[th.my_name] = {
-                race = th.my_race,
-                class = th.my_class,
-                is_bot = nil,
-                name = th.my_name,
-                level = th.my_level,
-                role = 'player',
-                spec = 'player'
-            }
+    local party_update
+    local function AddMemberToCurrentPartyTable(person)
+        --print('Trying to add ' .. person)
+        if person == th.me then
+            party_member_name = th.my_name
+            party_member_race = th.my_race
+            party_member_class = th.my_class
+            party_member_level = th.my_level
+        else
+            party_member_name = UnitName(person)
+            party_member_race = UnitRace(person)
+            party_member_class = UnitClass(person)
+            party_member_level = UnitLevel(person)
         end
-        if raid_members == 0 and party_members > 0 and current_party.counter ~= party_members + 1 then
-            print('party_members: ' .. party_members + 1)
-            print('current_party.counter: ' .. current_party.counter)
-            local party_member_str = 'party' .. party_members
-            local party_member_name = UnitName(party_member_str)
-            print('party_member_name is ' .. party_member_name)
-            local party_member_race = UnitRace(party_member_str)
-            print('party_member_race ' .. party_member_race)
-            local party_member_class = UnitClass(party_member_str)
-            print('party_member_class is ' .. party_member_class)
-            local party_member_level = UnitLevel(party_member_str)
-            print('party_member_level is ' .. party_member_level)
-            current_party.counter = current_party.counter + 1
-            current_party.setup[party_member_name] = {
-                race = party_member_race or 0,
-                class = party_member_class or 0,
-                name = party_member_name or 0,
-                level = party_member_level or 0
-            }
-            SendAddonMessage('nexus', 'GRINFO:ALL:FULL', 'BATTLEGROUND')
-            print('party_member_str is: ' .. party_member_str)
-        end
-        print('Current party setup is: ')
-        print('Members total: ' .. current_party.counter)
-        for _, party_members_data in current_party.setup do
-            print('Name: ' .. party_members_data.name)
+        --print('its name is ' .. party_member_name)
+        --print('its race is ' .. party_member_race)
+        --print('its class is ' .. party_member_class)
+        --print('its level is ' .. party_member_level)
+        current_party.setup[party_member_name] = {
+            race = party_member_race,
+            class = party_member_class,
+            name = party_member_name,
+            level = party_member_level,
+        }
+    end
+    if no_raid_members and current_party.counter ~= party_members + 1 then
+        party_update = 1
+        current_party.counter = party_members + 1
+        current_party.setup = {}
+        AddMemberToCurrentPartyTable(th.me)
+        if party_members > 0 then
+            for i = 1, party_members do
+                local name = UnitName('party' .. i)
+                if not name then print('Error while processing party' .. i) return end
+                AddMemberToCurrentPartyTable('party' .. i)
+            end
+            SendAddonMessage("nexus", 'GRINFO:ALL:FULL', "BATTLEGROUND")
         end
     end
+    --if party_update then
+    --    print('Current party setup:')
+    --    print('Members: ' .. current_party.counter)
+    --    for _, party_members_data in current_party.setup do
+    --        print(string.format('race: %s, class: %s, is_bot: %s, name: %s, level: %s, role: %s, spec: %s',
+    --                party_members_data.race or 0,
+    --                party_members_data.class or 0,
+    --                party_members_data.is_bot or 0,
+    --                party_members_data.name or 0,
+    --                party_members_data.level or 0,
+    --                party_members_data.role or 0,
+    --                party_members_data.spec or 0))
+    --    end
+    --end
 end
 
 function th.GetPartyInfoFromCallback(data)
+    print('received data: ' .. data)
     local temp_substring = data
     local space_position = string.find(data, ' ')
     local start_position = 1
@@ -82,7 +96,22 @@ function th.GetPartyInfoFromCallback(data)
     temp_substring = string.sub(temp_substring, end_position + 2)
     local bot_owner = string.sub(temp_substring, start_position)
     if bot_name and bot_race and bot_class and bot_role and bot_owner and current_party.setup[bot_name] then
-        --print('kek')
+        current_party.setup[bot_name].is_bot = 1
+        current_party.setup[bot_name].role = bot_role
+        current_party.setup[bot_name].owner = bot_owner
+
+        print('Current party setup:')
+        print('Members: ' .. current_party.counter)
+        for _, party_members_data in current_party.setup do
+            print(string.format('race: %s, class: %s, is_bot: %s, name: %s, level: %s, role: %s, spec: %s',
+                    party_members_data.race or 0,
+                    party_members_data.class or 0,
+                    party_members_data.is_bot or 0,
+                    party_members_data.name or 0,
+                    party_members_data.level or 0,
+                    party_members_data.role or 0,
+                    party_members_data.spec or 0))
+        end
     end
 end
 
@@ -161,4 +190,8 @@ end
 
 function th.SummonPlayer(summoning_comp_owner, assist_owner)
     print('kek')
+end
+
+function th.Test()
+    local input_string = 'GRINFO:ALL:FULL Jeldan:Tauren:Druid:Healer:Ucsum Velchar:Undead:Rogue:MDPS:Ucsum'
 end
