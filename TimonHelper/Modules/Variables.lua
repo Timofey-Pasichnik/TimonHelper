@@ -9,7 +9,8 @@ th.classes = {
     shaman = 'Shaman',
     druid = 'Druid',
     mage = 'Mage',
-    rogue = 'Rogue'
+    rogue = 'Rogue',
+    warlock = 'Warlock'
 }
 th.roles = {
     healer = 'healer',

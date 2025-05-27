@@ -9,6 +9,20 @@ local presets_types = {
     dungeon = 'dungeon'
 }
 
+function th.AddComp(owner, class, role, race, gender)
+    SendChatMessage(string.format('.z addinvite %s t0d %s %s default %s %s',
+    owner, class, role, race, gender))
+end
+
+--SendChatMessage(string.format('.z addinvite %s t0d %s %s default %s %s',
+--th.my_name,
+----preset[party_index].owner,
+--preset[party_index].class,
+--preset[party_index].role,
+--preset[party_index].race,
+--preset[party_index].gender)
+
+
 function th.FillCurrentPartyTable()
     local party_members = GetNumPartyMembers()
     local party_member_str = 'party' .. party_members
@@ -22,7 +36,6 @@ function th.FillCurrentPartyTable()
     local alone = no_party_members and no_raid_members
     local party_update
     local function AddMemberToCurrentPartyTable(person)
-        --print('Trying to add ' .. person)
         if person == th.me then
             party_member_name = th.my_name
             party_member_race = th.my_race
@@ -34,10 +47,6 @@ function th.FillCurrentPartyTable()
             party_member_class = UnitClass(person)
             party_member_level = UnitLevel(person)
         end
-        --print('its name is ' .. party_member_name)
-        --print('its race is ' .. party_member_race)
-        --print('its class is ' .. party_member_class)
-        --print('its level is ' .. party_member_level)
         current_party.setup[party_member_name] = {
             race = party_member_race,
             class = party_member_class,
@@ -59,59 +68,35 @@ function th.FillCurrentPartyTable()
             SendAddonMessage("nexus", 'GRINFO:ALL:FULL', "BATTLEGROUND")
         end
     end
-    --if party_update then
-    --    print('Current party setup:')
-    --    print('Members: ' .. current_party.counter)
-    --    for _, party_members_data in current_party.setup do
-    --        print(string.format('race: %s, class: %s, is_bot: %s, name: %s, level: %s, role: %s, spec: %s',
-    --                party_members_data.race or 0,
-    --                party_members_data.class or 0,
-    --                party_members_data.is_bot or 0,
-    --                party_members_data.name or 0,
-    --                party_members_data.level or 0,
-    --                party_members_data.role or 0,
-    --                party_members_data.spec or 0))
-    --    end
-    --end
 end
 
 function th.GetPartyInfoFromCallback(data)
-    print('received data: ' .. data)
-    local temp_substring = data
-    local space_position = string.find(data, ' ')
-    local start_position = 1
-    local end_position
-    temp_substring = string.sub(temp_substring, space_position + 1)
-    end_position = string.find(temp_substring, ':') - 1
-    local bot_name = string.sub(temp_substring, start_position, end_position)
-    temp_substring = string.sub(temp_substring, end_position + 2)
-    end_position = string.find(temp_substring, ':') - 1
-    local bot_race = string.sub(temp_substring, start_position, end_position)
-    temp_substring = string.sub(temp_substring, end_position + 2)
-    end_position = string.find(temp_substring, ':') - 1
-    local bot_class = string.sub(temp_substring, start_position, end_position)
-    temp_substring = string.sub(temp_substring, end_position + 2)
-    end_position = string.find(temp_substring, ':') - 1
-    local bot_role = string.sub(temp_substring, start_position, end_position)
-    temp_substring = string.sub(temp_substring, end_position + 2)
-    local bot_owner = string.sub(temp_substring, start_position)
-    if bot_name and bot_race and bot_class and bot_role and bot_owner and current_party.setup[bot_name] then
-        current_party.setup[bot_name].is_bot = 1
-        current_party.setup[bot_name].role = bot_role
-        current_party.setup[bot_name].owner = bot_owner
-
-        print('Current party setup:')
-        print('Members: ' .. current_party.counter)
-        for _, party_members_data in current_party.setup do
-            print(string.format('race: %s, class: %s, is_bot: %s, name: %s, level: %s, role: %s, spec: %s',
-                    party_members_data.race or 0,
-                    party_members_data.class or 0,
-                    party_members_data.is_bot or 0,
-                    party_members_data.name or 0,
-                    party_members_data.level or 0,
-                    party_members_data.role or 0,
-                    party_members_data.spec or 0))
+    local bot_info = string.split(data, ' ')
+    for index, bot in ipairs(bot_info) do
+        if index > 1 then
+            bot_data = string.split(bot, ':')
+            bot_name = bot_data[1]
+            bot_role = bot_data[4]
+            bot_owner = bot_data[5]
+            if current_party.setup[bot_name] then
+                current_party.setup[bot_name].is_bot = 1
+                current_party.setup[bot_name].role = bot_role
+                current_party.setup[bot_name].owner = bot_owner
+            end
         end
+    end
+    print('Members in group: ' .. current_party.counter)
+    for _, party_data in current_party.setup do
+        print(string.format('name: %s, race: %s, class: %s, level: %s, is_bot: %s, role: %s, owner: %s',
+                party_data.name or 0,
+                party_data.race or 0,
+                party_data.class or 0,
+                party_data.level or 0,
+                party_data.is_bot or 0,
+                party_data.role or 0,
+                party_data.owner or 0
+        ))
+
     end
 end
 
@@ -162,14 +147,7 @@ local function HiringLogic(preset)
     end
     if index == index_to_hire then
         local party_index = 'party_' .. index
-        SendChatMessage(string.format('.z addinvite %s t0d %s %s default %s %s',
-                th.my_name,
-                --preset[party_index].owner,
-                preset[party_index].class,
-                preset[party_index].role,
-                preset[party_index].race,
-                preset[party_index].gender)
-        )
+        th.AddComp(th.my_name, preset[party_index].class, preset[party_index].role, preset[party_index].race, preset[party_index].gender)
         index_to_hire = index_to_hire + 1
         if index_to_hire > 4 and type_of_group == 'dungeon' then
             type_of_group = nil
@@ -188,10 +166,89 @@ function th.HireComps(preset)
     end
 end
 
-function th.SummonPlayer(summoning_comp_owner, assist_owner)
-    print('kek')
-end
 
-function th.Test()
-    local input_string = 'GRINFO:ALL:FULL Jeldan:Tauren:Druid:Healer:Ucsum Velchar:Undead:Rogue:MDPS:Ucsumd'
+local warlock_name
+local warrior_name
+local friend_name
+local summoning_char_party_id
+local warlock_char_party_id
+local warrior_char_party_id
+local smart_case = 0
+function th.SummonPlayer(summoning_comp_owner, assist_owner)
+    if not friend_name then friend_name = GetFriendInfo(1) end
+    local horde = th.my_race == 'Orc' or th.my_race == 'Undead' or th.my_race == 'Tauren' or th.my_race == 'Troll'
+    local alliance = not horde
+    local summoning_comp_owner_race
+    if horde then
+        summoning_comp_owner_race = string.lower(th.races.undead)
+    else
+        summoning_comp_owner_race = string.lower(th.races.human)
+    end
+    if smart_case == 0 and GetNumPartyMembers() == 0 then
+        th.AddComp(summoning_comp_owner, string.lower(th.classes.warlock), th.roles.rangedps, summoning_comp_owner_race, th.genders.male)
+        smart_case = 1
+    elseif smart_case == 1 and GetNumPartyMembers() == 1 then
+        th.AddComp(assist_owner, string.lower(th.classes.warrior), th.roles.mdps, summoning_comp_owner_race, th.genders.male)
+        smart_case = 2
+    elseif smart_case == 2 and GetNumPartyMembers() == 2 then
+        InviteByName(friend_name)
+        smart_case = 3
+    elseif smart_case == 3 and GetNumPartyMembers() > 2 then
+        if not warlock_name and not warrior_name then
+            for _, current_party_data in current_party.setup do
+                if current_party_data.owner
+                        and current_party_data.owner == th.my_name
+                        and current_party_data.level == 20
+                        and current_party_data.is_bot
+                        and current_party_data.class == th.classes.warlock
+                then
+                    warlock_name = current_party_data.name
+                elseif current_party_data.owner
+                        and current_party_data.owner == th.my_name
+                        and current_party_data.level == 3
+                        and current_party_data.is_bot
+                        and current_party_data.class == th.classes.warrior
+                then
+                    warrior_name = current_party_data.name
+                end
+            end
+        end
+        smart_case = 4
+    elseif smart_case == 4 and warlock_name and warrior_name then
+        for i = 1, GetNumPartyMembers() do
+            if UnitName('party' .. i) == friend_name then summoning_char_party_id = 'party' .. i end
+        end
+        smart_case = 5
+    elseif smart_case == 5 and summoning_char_party_id then
+        TargetUnit(summoning_char_party_id)
+        smart_case = 6
+    elseif smart_case == 6 and UnitName(th.he) == friend_name then
+        SendChatMessage('cast Ritual of Summoning','whisper', 'orcish', warlock_name)
+        smart_case = 7
+    elseif smart_case == 7 then
+        for i = 1, GetNumPartyMembers() do
+            if UnitName('party' .. i) == warrior_name then warrior_char_party_id = 'party' .. i end
+        end
+        smart_case = 8
+    elseif smart_case ==8 and warrior_char_party_id then
+        TargetUnit(warrior_char_party_id)
+        smart_case = 9
+    elseif smart_case == 9 and UnitName(th.he) == warrior_name then
+        SendChatMessage('.z comestay')
+        th.RunWithDelay(SendChatMessage, '.z use', 1)
+        smart_case = 10
+    elseif smart_case == 10 and th.CurrentDistanceToTarget(summoning_char_party_id) == th.ranges.forward.closest then
+        warlock_name = nil
+        warrior_name = nil
+        friend_name = nil
+        summoning_char_party_id = nil
+        warlock_char_party_id = nil
+        warrior_char_party_id = nil
+        LeaveParty()
+        th.RunWithDelay(LeaveParty, nil, 1)
+        smart_case = 11
+        elseif smart_case == 11 and GetNumPartyMembers() == 0 then
+            smart_case = 0
+            ForceQuit()
+    end
 end

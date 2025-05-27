@@ -59,3 +59,48 @@ function th.RunWithDelay(command_to_execute, arguments_for_command, delay_before
         end
     end)
 end
+
+function string.split(string_to_split, pattern)
+    local split_string = {}
+    local start_index = 1
+    local found_string
+    while start_index do
+        delimeter_index = string.find(string_to_split, pattern, start_index)
+        if delimeter_index then
+            found_string = string.sub(string_to_split, start_index, delimeter_index - 1)
+            table.insert(split_string, found_string)
+            start_index = delimeter_index + 1
+        else
+            found_string = string.sub(string_to_split, start_index)
+            table.insert(split_string, found_string)
+            start_index = nil
+        end
+    end
+    return split_string
+end
+
+function string.match(string_to_match, pattern)
+    local matched_results = {}
+    local start_index = 1
+    local end_index
+    local found_string
+    while start_index do
+        start_index, end_index = string.find(string_to_match, pattern, start_index)
+        if start_index then
+            found_string = string.sub(string_to_match, start_index, end_index)
+            table.insert(matched_results, found_string)
+            start_index = end_index + 1
+        else
+            start_index = nil
+        end
+    end
+    return matched_results
+end
+
+function table.length(table_to_calculate)
+    local length = 0
+    for _ in pairs(table_to_calculate) do
+        length = length + 1
+    end
+    return length
+end
