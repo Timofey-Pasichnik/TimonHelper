@@ -193,5 +193,5 @@ function th.SummonPlayer(summoning_comp_owner, assist_owner)
 end
 
 function th.Test()
-    local input_string = 'GRINFO:ALL:FULL Jeldan:Tauren:Druid:Healer:Ucsum Velchar:Undead:Rogue:MDPS:Ucsum'
+    local input_string = 'GRINFO:ALL:FULL Jeldan:Tauren:Druid:Healer:Ucsum Velchar:Undead:Rogue:MDPS:Ucsumd'
 end
