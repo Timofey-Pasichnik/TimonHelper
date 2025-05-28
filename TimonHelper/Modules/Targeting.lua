@@ -28,6 +28,7 @@ local function CanAttackFightingTarget(target)
             and UnitReaction(target, th.me) < 5
             and not UnitIsDead(target)
             and UnitAffectingCombat(target)
+            and (not UnitIsTapped(target) or (UnitIsTapped(target) and UnitIsTappedByPlayer(target)))
 end
 
 function CanAttackTarget(target)

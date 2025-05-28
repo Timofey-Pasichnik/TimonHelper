@@ -19,7 +19,8 @@ th.warrior_spells = {
         spell_name = th.spell_names.rend,
         action_slot = '27',
         ignored_creature_types = {
-            ['Elemental'] = 1
+            ['Elemental'] = 1,
+            ['Mechanical'] = 1
         }
     },
     overpower = {
@@ -109,8 +110,8 @@ local function ThunderClap()
             and UnitExists(th.he)
             and not UnitIsDead(th.he)
             and th.targets.counters.closest + th.targets.counters.close > 3
-            and (not UnitExists('mark5') or not CheckInteractDistance('mark5', th.ranges.forward.close))
-            and not buffed(th.spell_names.thunder_clap, th.he)
+            --and (not UnitExists('mark5') or not CheckInteractDistance('mark5', th.ranges.forward.close))
+            --and not buffed(th.spell_names.thunder_clap, th.he)
             and UnitMana(th.me) >= 20
     then
         UseAction(thunder_clap)
@@ -126,7 +127,7 @@ local function Bloodrage()
             and UnitExists(th.he)
             and not UnitIsDead(th.he)
             and CheckInteractDistance(th.he, th.ranges.forward.closest)
-            and UnitHealth(th.me) / UnitHealthMax(th.me) * 100 > 50
+            and UnitHealth(th.me) / UnitHealthMax(th.me) * 100 > 80
     then
         UseAction(bloodrage)
     end
@@ -264,7 +265,17 @@ end
 function th.SelectWarriorTarget()
     local skull_guid = 'mark8'
     local moon_guid = 'mark5'
-    if CanAttackTarget(skull_guid) then
+    if not IsInInstance() then
+        if th.targets.counters.closest > 0 then
+            local lowest_hp = 1000000000, lowest_guid
+            for _, guid in pairs(th.targets.closest) do
+                if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
+                    lowest_guid = guid.guid
+                end
+            end
+            TargetUnit(lowest_guid)
+        end
+    elseif CanAttackTarget(skull_guid) then
         TargetUnit(skull_guid)
     elseif th.targets.counters.all_ranges == 1 then
         local probable_target = next(th.targets.all_ranges)
