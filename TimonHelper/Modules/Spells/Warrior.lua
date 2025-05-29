@@ -20,7 +20,8 @@ th.warrior_spells = {
         action_slot = '27',
         ignored_creature_types = {
             ['Elemental'] = 1,
-            ['Mechanical'] = 1
+            ['Mechanical'] = 1,
+            ['Undead'] = 1
         }
     },
     overpower = {
@@ -262,18 +263,24 @@ function th.WarriorSingleRotation()
 
 end
 
+local lowest_hp = 1000000000
+local lowest_guid
 function th.SelectWarriorTarget()
     local skull_guid = 'mark8'
     local moon_guid = 'mark5'
     if not IsInInstance() then
         if th.targets.counters.closest > 0 then
-            local lowest_hp = 1000000000, lowest_guid
             for _, guid in pairs(th.targets.closest) do
                 if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
                     lowest_guid = guid.guid
+                    lowest_hp = UnitHealth(lowest_guid)
                 end
             end
             TargetUnit(lowest_guid)
+        end
+        if UnitExists(lowest_guid) and UnitIsDead(lowest_guid) then
+            lowest_guid = nil
+            lowest_hp = 1000000000
         end
     elseif CanAttackTarget(skull_guid) then
         TargetUnit(skull_guid)
