@@ -270,6 +270,7 @@ function th.SelectWarriorTarget()
     local moon_guid = 'mark5'
     if not IsInInstance() then
         if th.targets.counters.closest > 0 then
+            if lowest_guid and not th.targets.closest[lowest_guid] then lowest_guid = nil lowest_hp = 1000000000 end
             for _, guid in pairs(th.targets.closest) do
                 if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
                     lowest_guid = guid.guid
@@ -277,6 +278,7 @@ function th.SelectWarriorTarget()
                 end
             end
         elseif th.targets.counters.close > 0 then
+            if lowest_guid and not th.targets.close[lowest_guid] then lowest_guid = nil lowest_hp = 1000000000 end
             for _, guid in pairs(th.targets.close) do
                 if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
                     lowest_guid = guid.guid
@@ -284,6 +286,7 @@ function th.SelectWarriorTarget()
                 end
             end
         elseif th.targets.counters.far > 0 then
+            if lowest_guid and not th.targets.far[lowest_guid] then lowest_guid = nil lowest_hp = 1000000000 end
             for _, guid in pairs(th.targets.far) do
                 if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
                     lowest_guid = guid.guid
@@ -291,6 +294,7 @@ function th.SelectWarriorTarget()
                 end
             end
         elseif th.targets.counters.farther > 0 then
+            if lowest_guid and not th.targets.farther[lowest_guid] then lowest_guid = nil lowest_hp = 1000000000 end
             for _, guid in pairs(th.targets.farther) do
                 if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
                     lowest_guid = guid.guid
@@ -298,6 +302,7 @@ function th.SelectWarriorTarget()
                 end
             end
         elseif th.targets.counters.farthest > 0 then
+            if lowest_guid and not th.targets.farthest[lowest_guid] then lowest_guid = nil lowest_hp = 1000000000 end
             for _, guid in pairs(th.targets.farthest) do
                 if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
                     lowest_guid = guid.guid
@@ -314,7 +319,7 @@ function th.SelectWarriorTarget()
                 TargetUnit(lowest_guid)
             end
         end
-        if UnitExists(th.he) and th.ExtractGUIDFromUnitName(th.he) ~= lowest_guid then
+        if UnitExists(th.he) and lowest_guid and th.ExtractGUIDFromUnitName(th.he) ~= lowest_guid then
             ClearTarget()
             TargetUnit(lowest_guid)
         end
