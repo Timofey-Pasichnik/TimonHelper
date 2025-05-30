@@ -310,7 +310,9 @@ function th.SelectWarriorTarget()
             lowest_hp = 1000000000
         end
         if not UnitExists(th.he) then
-            TargetUnit(lowest_guid)
+            if lowest_guid then
+                TargetUnit(lowest_guid)
+            end
         end
         if UnitExists(th.he) and th.ExtractGUIDFromUnitName(th.he) ~= lowest_guid then
             ClearTarget()
