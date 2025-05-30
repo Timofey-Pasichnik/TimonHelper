@@ -276,11 +276,45 @@ function th.SelectWarriorTarget()
                     lowest_hp = UnitHealth(lowest_guid)
                 end
             end
-            TargetUnit(lowest_guid)
+        elseif th.targets.counters.close > 0 then
+            for _, guid in pairs(th.targets.close) do
+                if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
+                    lowest_guid = guid.guid
+                    lowest_hp = UnitHealth(lowest_guid)
+                end
+            end
+        elseif th.targets.counters.far > 0 then
+            for _, guid in pairs(th.targets.far) do
+                if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
+                    lowest_guid = guid.guid
+                    lowest_hp = UnitHealth(lowest_guid)
+                end
+            end
+        elseif th.targets.counters.farther > 0 then
+            for _, guid in pairs(th.targets.farther) do
+                if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
+                    lowest_guid = guid.guid
+                    lowest_hp = UnitHealth(lowest_guid)
+                end
+            end
+        elseif th.targets.counters.farthest > 0 then
+            for _, guid in pairs(th.targets.farthest) do
+                if UnitExists(guid.guid) and UnitHealth(guid.guid) < lowest_hp and UnitHealth(guid.guid) > 0 then
+                    lowest_guid = guid.guid
+                    lowest_hp = UnitHealth(lowest_guid)
+                end
+            end
         end
         if UnitExists(lowest_guid) and UnitIsDead(lowest_guid) then
             lowest_guid = nil
             lowest_hp = 1000000000
+        end
+        if not UnitExists(th.he) then
+            TargetUnit(lowest_guid)
+        end
+        if UnitExists(th.he) and th.ExtractGUIDFromUnitName(th.he) ~= lowest_guid then
+            ClearTarget()
+            TargetUnit(lowest_guid)
         end
     elseif CanAttackTarget(skull_guid) then
         TargetUnit(skull_guid)
