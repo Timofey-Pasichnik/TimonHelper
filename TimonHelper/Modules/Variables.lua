@@ -4,6 +4,8 @@ th.he = 'target'
 th.my_name = UnitName(th.me)
 th.my_class = UnitClass(th.me)
 th.my_level = UnitLevel(th.me)
+th.my_race = UnitRace(th.me)
+--th.my_guid = th.ExtractGUIDFromUnitName(th.me)
 th.classes = {
     warrior = 'Warrior',
     shaman = 'Shaman',
@@ -22,7 +24,6 @@ th.genders = {
     male = 'male',
     female = 'female'
 }
-th.my_race = UnitRace(th.me)
 th.races = {
     orc = 'Orc',
     tauren = 'Tauren',

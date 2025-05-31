@@ -30,17 +30,18 @@ function th.FillCurrentPartyTable()
     local party_member_race
     local party_member_class
     local party_member_level
+    local party_member_guid
     local raid_members = GetNumRaidMembers()
-    local no_party_members = party_members == 0
     local no_raid_members = raid_members == 0
-    local alone = no_party_members and no_raid_members
     local party_update
     local function AddMemberToCurrentPartyTable(person)
+        party_member_guid = th.ExtractGUIDFromUnitName(person)
         if person == th.me then
             party_member_name = th.my_name
             party_member_race = th.my_race
             party_member_class = th.my_class
             party_member_level = th.my_level
+
         else
             party_member_name = UnitName(person)
             party_member_race = UnitRace(person)
@@ -52,6 +53,7 @@ function th.FillCurrentPartyTable()
             class = party_member_class,
             name = party_member_name,
             level = party_member_level,
+            guid = party_member_guid
         }
     end
     if no_raid_members and current_party.counter ~= party_members + 1 then
@@ -87,16 +89,20 @@ function th.GetPartyInfoFromCallback(data)
     end
     print('Members in group: ' .. current_party.counter)
     for _, party_data in current_party.setup do
-        print(string.format('name: %s, race: %s, class: %s, level: %s, is_bot: %s, role: %s, owner: %s',
+        print(string.format('name: %s, race: %s, class: %s, level: %s, is_bot: %s, role: %s, owner: %s, guid: %s',
                 party_data.name or 0,
                 party_data.race or 0,
                 party_data.class or 0,
                 party_data.level or 0,
                 party_data.is_bot or 0,
                 party_data.role or 0,
-                party_data.owner or 0
+                party_data.owner or 0,
+                party_data.guid or 0
         ))
 
+    end
+    if th.summoning_in_progress then
+        th.SummonPlayer()
     end
 end
 
@@ -166,89 +172,80 @@ function th.HireComps(preset)
     end
 end
 
+local summoning = CreateFrame('Frame')
 
-local warlock_name
-local warrior_name
-local friend_name
-local summoning_char_party_id
-local warlock_char_party_id
-local warrior_char_party_id
-local smart_case = 0
-function th.SummonPlayer(summoning_comp_owner, assist_owner)
-    if not friend_name then friend_name = GetFriendInfo(1) end
-    local horde = th.my_race == 'Orc' or th.my_race == 'Undead' or th.my_race == 'Tauren' or th.my_race == 'Troll'
-    local alliance = not horde
-    local summoning_comp_owner_race
-    if horde then
-        summoning_comp_owner_race = string.lower(th.races.undead)
-    else
-        summoning_comp_owner_race = string.lower(th.races.human)
-    end
-    if smart_case == 0 and GetNumPartyMembers() == 0 then
-        th.AddComp(summoning_comp_owner, string.lower(th.classes.warlock), th.roles.rangedps, summoning_comp_owner_race, th.genders.male)
-        smart_case = 1
-    elseif smart_case == 1 and GetNumPartyMembers() == 1 then
-        th.AddComp(assist_owner, string.lower(th.classes.warrior), th.roles.mdps, summoning_comp_owner_race, th.genders.male)
-        smart_case = 2
-    elseif smart_case == 2 and GetNumPartyMembers() == 2 then
-        InviteByName(friend_name)
-        smart_case = 3
-    elseif smart_case == 3 and GetNumPartyMembers() > 2 then
-        if not warlock_name and not warrior_name then
-            for _, current_party_data in current_party.setup do
-                if current_party_data.owner
-                        and current_party_data.owner == th.my_name
-                        and current_party_data.level == 20
-                        and current_party_data.is_bot
-                        and current_party_data.class == th.classes.warlock
-                then
-                    warlock_name = current_party_data.name
-                elseif current_party_data.owner
-                        and current_party_data.owner == th.my_name
-                        and current_party_data.level == 3
-                        and current_party_data.is_bot
-                        and current_party_data.class == th.classes.warrior
-                then
-                    warrior_name = current_party_data.name
+local warlock_invited, warlock_guid, warlock_is_nearby, warlock_summoning_started, warrior_invited,
+friend_invited, friend_guid, owner_gender, warrior_guid, warlock_name, summoning_friend_name
+
+function th.Summoning(warlock_owner, warrior_owner)
+    local elapsed = 0
+    if th.my_race == 'Orc' then owner_gender = 'male' else owner_gender = 'female' end
+    summoning_friend_name = GetFriendInfo(1)
+    ClearTarget()
+    summoning:SetScript('OnUpdate', function()
+        elapsed = elapsed + arg1
+        if elapsed > 0.05 then
+            elapsed = 0
+            if current_party.counter == 1 and not warlock_invited then
+                th.AddComp(warlock_owner, string.lower(th.classes.warlock), '', string.lower(th.my_race), owner_gender)
+                warlock_invited = 1
+            elseif current_party.counter == 2 and not warlock_guid then
+                for _, party_data in current_party.setup do
+                    if party_data.class and party_data.class == th.classes.warlock and party_data.is_bot and party_data.owner == th.my_name then
+                        warlock_guid = party_data.guid
+                        warlock_name = party_data.name
+                        print('warlock guid is ' .. warlock_guid)
+                        break
+                    end
                 end
+            elseif current_party.counter == 2 and not warrior_invited then
+                th.AddComp(warrior_owner, string.lower(th.classes.warrior), th.roles.mdps, string.lower(th.my_race), owner_gender)
+                warrior_invited = 1
+            elseif current_party.counter == 3 and not warrior_guid then
+                for _, party_data in current_party.setup do
+                    if party_data.class and party_data.class == th.classes.warrior and party_data.is_bot and party_data.owner == th.my_name then
+                        warrior_guid = party_data.guid
+                        print('warrior guid is ' .. warrior_guid)
+                        break
+                    end
+                end
+            elseif current_party.counter == 3 and warrior_guid and not friend_invited then
+                InviteByName(summoning_friend_name)
+                friend_invited = 1
+            elseif current_party.counter > 3 and not friend_guid then
+                for _, party_data in current_party.setup do
+                    if party_data.name and party_data.name == summoning_friend_name then
+                        friend_guid = party_data.guid
+                        print('friend guid is ' .. friend_guid)
+                        break
+                    end
+                end
+            elseif current_party.counter > 3 and friend_guid and not warlock_is_nearby and th.CurrentDistanceToTarget(warlock_guid) == th.ranges.backward[3] then
+                print('warlock is nearby')
+                warlock_is_nearby = 1
+            elseif current_party.counter > 3 and friend_guid and warlock_is_nearby and not warlock_summoning_started and not UnitExists(th.he) then
+                print('Trying to target friend by his guid: ' .. friend_guid)
+                TargetUnit(friend_guid)
+            elseif current_party.counter > 3 and friend_guid and warlock_is_nearby and not warlock_summoning_started and UnitExists(th.he) and UnitName(th.he) == summoning_friend_name then-- and delay_after_targeting and delay_after_targeting > GetTime() + 0.15 then
+                SendChatMessage('Cast Ritual of Summoning', 'WHISPER', nil, warlock_name)
+                warlock_summoning_started = 1
+            elseif current_party.counter > 1 and th.CurrentDistanceToTarget(friend_guid) == th.ranges.backward[3] then
+                LeaveParty()
+            elseif current_party.counter == 1 and th.CurrentDistanceToTarget(friend_guid) == th.ranges.backward[3] then
+                summoning:SetScript('OnUpdate', nil)
+                warlock_invited, warlock_guid, warlock_is_nearby, warlock_summoning_started, warrior_invited,
+                friend_invited, friend_guid, owner_gender, warrior_guid, warlock_name = nil
+                Logout()
             end
         end
-        smart_case = 4
-    elseif smart_case == 4 and warlock_name and warrior_name then
-        for i = 1, GetNumPartyMembers() do
-            if UnitName('party' .. i) == friend_name then summoning_char_party_id = 'party' .. i end
-        end
-        smart_case = 5
-    elseif smart_case == 5 and summoning_char_party_id then
-        TargetUnit(summoning_char_party_id)
-        smart_case = 6
-    elseif smart_case == 6 and UnitName(th.he) == friend_name then
-        SendChatMessage('cast Ritual of Summoning','whisper', 'orcish', warlock_name)
-        smart_case = 7
-    elseif smart_case == 7 then
-        for i = 1, GetNumPartyMembers() do
-            if UnitName('party' .. i) == warrior_name then warrior_char_party_id = 'party' .. i end
-        end
-        smart_case = 8
-    elseif smart_case ==8 and warrior_char_party_id then
-        TargetUnit(warrior_char_party_id)
-        smart_case = 9
-    elseif smart_case == 9 and UnitName(th.he) == warrior_name then
+    end)
+end
+
+function th.AssistSummon()
+    if not UnitExists(th.he) or th.ExtractGUIDFromUnitName(th.he) ~= warrior_guid then
+        TargetUnit(warrior_guid)
+    elseif UnitExists(th.he) and th.ExtractGUIDFromUnitName(th.he) == warrior_guid then
         SendChatMessage('.z comestay')
-        th.RunWithDelay(SendChatMessage, '.z use', 1)
-        smart_case = 10
-    elseif smart_case == 10 and th.CurrentDistanceToTarget(summoning_char_party_id) == th.ranges.forward.closest then
-        warlock_name = nil
-        warrior_name = nil
-        friend_name = nil
-        summoning_char_party_id = nil
-        warlock_char_party_id = nil
-        warrior_char_party_id = nil
-        LeaveParty()
-        th.RunWithDelay(LeaveParty, nil, 1)
-        smart_case = 11
-        elseif smart_case == 11 and GetNumPartyMembers() == 0 then
-            smart_case = 0
-            ForceQuit()
+        SendChatMessage('.z use')
     end
 end

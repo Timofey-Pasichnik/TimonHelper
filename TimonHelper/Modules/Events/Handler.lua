@@ -20,6 +20,7 @@ event_handler:SetScript('OnEvent', function()
     elseif event == event_list.party_members_changed then
         th.CheckBeforeHiring()
         th.RunWithDelay(th.FillCurrentPartyTable, nil, 0.5)
+        if th.summoning_in_progress then th.SummonPlayer() end
         --th.FillCurrentPartyTable()
     elseif event == event_list.chat_msg_addon then
         th.ProcessChatMsgAddonEvent(arg1 or 0, arg2 or 0, arg3 or 0, arg4 or 0, arg5 or 0, arg6 or 0, arg7 or 0, arg8 or 0, arg9 or 0)
