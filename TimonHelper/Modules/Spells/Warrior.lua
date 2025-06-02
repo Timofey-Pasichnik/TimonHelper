@@ -43,6 +43,9 @@ th.warrior_spells = {
     thunder_clap = {
         spell_name = th.spell_names.thunder_clap,
         action_slot = '59'
+    },
+    shoot = {
+        action_slot = '37'
     }
 }
 
@@ -232,17 +235,26 @@ local function SunderArmor()
     end
 end
 
+local function Shoot()
+    local shoot = th.warrior_spells.shoot.action_slot
+    if IsActionInRange(shoot) == 1
+            and GetActionCooldown(shoot) == 0
+    then
+        th.Shoot()
+    end
+end
+
 function th.WarriorRotation()
     th.SelectWarriorTarget()
     --th.SetMarks()
     th.SetMeleeAttack()
     Overpower()
     Charge()
+    Shoot()
     BloodFury()
     BattleShout()
     DemoralizingShout()
     Bloodrage()
-
     ThunderClap()
     Hamstring()
     Rend()
